@@ -3,10 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@types/jest": "24.0.15",
+    "@types/node": "12.0.12",
+    "@types/react": "16.8.23",
+    "@types/react-dom": "16.8.4",
+    "mobx": "^5.11.0",
+    "mobx-react-lite": "^1.4.1",
     "office-ui-fabric-react": "^7.7.2",
     "react": "^16.8.6",
+    "react-dnd": "^9.0.1",
+    "react-dnd-html5-backend": "^9.0.0",
     "react-dom": "^16.8.6",
-    "react-scripts": "3.0.1"
+    "react-scripts": "3.0.1",
+    "react-split-pane": "^0.1.87",
+    "typescript": "3.5.2"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -28,5 +38,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/react-splitter-layout": "^3.0.0"
   }
 }
