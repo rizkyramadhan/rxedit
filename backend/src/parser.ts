@@ -1,5 +1,5 @@
 import { SyntaxKind, SourceFile } from 'ts-morph';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 function getKindNamesForApi() {
   // some SyntaxKinds are repeated, so only use the first one
@@ -90,7 +90,7 @@ export const getImport = (sf: SourceFile) => {
   });
 };
 
-export const getDefaultComponent = (sf: any) => {
+export const getDefaultComponent = (sf: any): any => {
   const expt = sf.getFirstChildByKind(SyntaxKind.ExportAssignment);
   if (expt) {
     let array: any = expt

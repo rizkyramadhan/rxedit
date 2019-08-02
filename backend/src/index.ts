@@ -1,8 +1,8 @@
-import * as cors from 'cors';
-import * as express from 'express';
-import * as fs from 'fs';
-import * as jetpack from 'fs-jetpack';
-import * as path from 'path';
+import cors from 'cors';
+import express from 'express';
+import fs from 'fs';
+import jetpack from 'fs-jetpack';
+import path from 'path';
 import { Project, SourceFile } from 'ts-morph';
 import { getDefaultComponent, getImport } from './parser';
 
@@ -17,22 +17,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 
-app.post('/loadproject', (req, res) => {
+app.post('/loadproject', (req: any, res: any) => {
   // if (req.body.path) {
   //   rootPath = req.body.path;
   //   absPath = path.resolve(rootPath);
   // }
   res.send('ok');
 });
-app.post('/newproject', (req, res) => {});
-app.post('/check', (req, res) => {});
-app.get('/list', (req, res) => {
+app.post('/newproject', (req: any, res: any) => {});
+app.post('/check', (req: any, res: any) => {});
+app.get('/list', (req: any, res: any) => {
   const tree = jetpack.inspectTree(absPath, {
     relativePath: true
   });
   res.send(JSON.stringify(tree));
 });
-app.post('/source', (req, res) => {
+app.post('/source', (req: any, res: any) => {
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.getSourceFile(path);
   if (sf) {
@@ -44,7 +44,7 @@ app.post('/source', (req, res) => {
     );
   }
 });
-app.post('/new-file', (req, res) => {
+app.post('/new-file', (req: any, res: any) => {
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.createSourceFile(
     path,
@@ -61,7 +61,7 @@ export default () => {
   project.saveSync();
   res.send('ok');
 });
-app.post('/new-dir', (req, res) => {
+app.post('/new-dir', (req: any, res: any) => {
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.createDirectory(path);
   if (sf) {
@@ -70,7 +70,7 @@ app.post('/new-dir', (req, res) => {
     res.send('ok');
   }
 });
-app.post('/move', (req, res) => {
+app.post('/move', (req: any, res: any) => {
   const from = req.body.from.replace('./', absPath + '/');
   const to = req.body.to.replace('./', absPath + '/');
   if (fs.lstatSync(from).isDirectory()) {
@@ -89,7 +89,7 @@ app.post('/move', (req, res) => {
     }
   }
 });
-app.post('/del', (req, res) => {
+app.post('/del', (req: any, res: any) => {
   const path = req.body.path.replace('./', absPath + '/');
   if (fs.lstatSync(path).isDirectory()) {
     const sf = project.getDirectory(path);
