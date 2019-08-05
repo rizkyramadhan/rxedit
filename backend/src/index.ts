@@ -112,3 +112,15 @@ app.post('/del', (req: any, res: any) => {
 app.listen(port, () => {
   console.log(`Listening on port ${port}!`);
 });
+
+
+app.post('/add-import', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+   
+  if (sf) {
+    sf.insertStatements(3, "console.log(5);\nconsole.log(6);");
+    project.saveSync();
+    res.send('ok');
+  }
+});
