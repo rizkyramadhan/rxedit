@@ -119,7 +119,7 @@ app.post('/add-import', (req: any, res: any) => {
   const sf = project.getSourceFile(path);
    
   if (sf) {
-    sf.insertStatements(3, "console.log(5);\nconsole.log(6);");
+    sf.insertStatements(0, "//Import bla bla");
     project.saveSync();
     res.send('ok');
   }

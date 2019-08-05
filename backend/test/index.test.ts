@@ -3,8 +3,10 @@ import _ from 'lodash';
 
 const url = 'http://localhost:4000';
 let list: any[] = [];
-const newfile = './Comp' + (Math.floor(Math.random() * 999999) + 1) + '.tsx';
-const newdir = './CompTest' + (Math.floor(Math.random() * 999999) + 1);
+const dirname=''+(Math.floor(Math.random() * 999999) + 1)
+const filename=''+ (Math.floor(Math.random() * 999999) + 1) + '.tsx'
+const newfile = './Comp' + filename;
+const newdir = './CompTest' + dirname;
 test('list result is object', async () => {
   const res = await axios.get(`${url}/list`);
   list = res.data;
@@ -47,26 +49,26 @@ test('create new unique name directory', async() => {
 test('move multiple times', async() => {
 
   const res = await axios.post(`${url}/move`, {
-    from: "./bisaginiy/Comp381635.tsx" ,
-    to: "./Comp381635.tsx"
+    from: newfile ,
+    to: newdir+'/'+filename
   });
   expect(res.data).toEqual('ok');
 
   const res1 = await axios.post(`${url}/move`, {
-    from: "./Comp381635.tsx" ,
-    to: "./bisaginiy/Comp381635.tsx"
+    from: newdir+'/'+filename ,
+    to: newfile
   });
   expect(res1.data).toEqual('ok');
 
   const res2 = await axios.post(`${url}/move`, {
-    from: "./bisaginiy/Comp381635.tsx",
-    to: "./IniBisa/Comp381635.tsx"
+    from: newfile ,
+    to: newdir+'/'+filename
   });
   expect(res2.data).toEqual('ok');
 
   const res3 = await axios.post(`${url}/move`, {
-    from: "./IniBisa/Comp381635.tsx",
-    to: "./bisaginiy/Comp381635.tsx"
+    from: newdir+'/'+filename ,
+    to: newfile
   });
   expect(res3.data).toEqual('ok');
 
@@ -75,38 +77,24 @@ test('move multiple times', async() => {
 
 test('move to same directory', async() => {
   const res = await axios.post(`${url}/move`, {
-    from: "./JosMantab.tsx" ,
-    to: "./JosMantab.tsx"
+    from: newfile ,
+    to: newfile
   });
   expect(res.data).toEqual('ok');
 })
 
 test('moving directory', async() => {
   const res = await axios.post(`${url}/move`, {
-    from: "./MoveIt" ,
-    to: "./bisaginiy/MoveIt"
+    from: newdir ,
+    to: "./bisaginiy/"+dirname
   });
   expect(res.data).toEqual('ok');
 
   const res1 = await axios.post(`${url}/move`, {
-    from: "./bisaginiy/MoveIt" ,
-    to: "./MoveIt"
+    from: "./bisaginiy/"+dirname ,
+    to: newdir
   });
   expect(res1.data).toEqual('ok');
-})
-
-// test('Delete newfile', async() => {
-//   const res = await axios.post(`${url}/del`,{
-//       path: newfile
-//   })
-//   expect(res.data).toEqual('ok');
-// })
-
-test('Delete newdir', async() => {
-  const res = await axios.post(`${url}/del`,{
-      path: newdir
-  })
-  expect(res.data).toEqual('ok');
 })
 
 test('Add Import', async() => {
@@ -115,3 +103,18 @@ test('Add Import', async() => {
   })
   expect(res.data).toEqual('ok');
 })
+
+test('Delete newfile', async() => {
+  const res = await axios.post(`${url}/del`,{
+      path: newfile
+  })
+  expect(res.data).toEqual('ok');
+})
+
+test('Delete newdir', async() => {
+  const res = await axios.post(`${url}/del`,{
+      path: newdir
+  })
+  expect(res.data).toEqual('ok');
+})
+
