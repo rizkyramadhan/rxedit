@@ -4,7 +4,9 @@ import { Label } from "office-ui-fabric-react";
 import React, { useEffect } from "react";
 import SplitPane from "react-split-pane";
 import { Api } from "../../api/Api";
-import SingleComponent, { detailAttrStyle } from "./SingleComponent";
+import VariableComponent, {
+  detailAttrStyle
+} from "./Variable/VariableComponent";
 
 const recurseFind = (array: any[], find: string) => {
   let found = undefined;
@@ -56,7 +58,7 @@ export default observer(({ data }: any) => {
             padding: "6px 0px 5px 15px",
             borderBottom: "1px solid #ccc",
             display: "flex",
-            justifyContent:"space-between",
+            justifyContent: "space-between",
             alignItems: "center"
           }}
         >
@@ -69,7 +71,7 @@ export default observer(({ data }: any) => {
           primary="second"
           style={{ position: "relative", height: "100%" }}
         >
-          <SingleComponent isDefault={true} component={source.default} />
+          <VariableComponent type="const" />
           <div />
         </SplitPane>
       </div>
