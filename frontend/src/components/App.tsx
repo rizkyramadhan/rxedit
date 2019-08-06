@@ -1,25 +1,25 @@
-import _ from 'lodash';
-import { observer, useObservable } from 'mobx-react-lite';
-import { Customizer, Label, Link } from 'office-ui-fabric-react';
-import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
-import React, { useEffect } from 'react';
-import { DndProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
-import SplitPane from 'react-split-pane';
-import { Api } from '../api/Api';
-import Detail from './Detail/Detail';
-import FileTree, { sortFileTree } from './Files/FileTree';
-import RootDrop from './Files/RootDrop';
-import Start from './Project/Start';
+import _ from "lodash";
+import { observer, useObservable } from "mobx-react-lite";
+import { Customizer, Label, Link } from "office-ui-fabric-react";
+import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
+import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
+import React, { useEffect } from "react";
+import { DndProvider } from "react-dnd";
+import HTML5Backend from "react-dnd-html5-backend";
+import SplitPane from "react-split-pane";
+import { Api } from "../api/Api";
+import Detail from "./Detail/Detail";
+import FileTree, { sortFileTree } from "./Files/FileTree";
+import RootDrop from "./Files/RootDrop";
+import Start from "./Project/Start";
 
 export default observer(() => {
   const data = useObservable({
-    project: '',
+    project: "",
     dir: [] as any[],
-    selected: '',
-    draghovered: '',
-    contextmenu: '',
+    selected: "",
+    draghovered: "",
+    contextmenu: "",
     loading: true
   });
 
@@ -39,36 +39,36 @@ export default observer(() => {
       <SplitPane minSize={280}>
         <div
           style={{
-            display: 'flex',
-            width: '100%',
-            height: '100%'
+            display: "flex",
+            width: "100%",
+            height: "100%"
           }}
         >
           <SplitPane
             style={{ flex: 1 }}
-            primary={'second'}
+            primary={"second"}
             maxSize={50}
-            split={'horizontal'}
+            split={"horizontal"}
           >
             <div
               style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'stretch',
-                flexDirection: 'column'
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "stretch",
+                flexDirection: "column"
               }}
             >
               <CommandBar
-                className='app-command-bar'
+                className="app-command-bar"
                 overflowItems={[]}
                 items={[
                   {
-                    key: 'search',
+                    key: "search",
                     onRender: () => {
                       return (
                         <SearchBox
-                          placeholder='Search'
+                          placeholder="Search"
                           underlined={false}
                           styles={{
                             root: {
@@ -85,16 +85,16 @@ export default observer(() => {
                 ]}
                 farItems={[
                   {
-                    key: 'refresh',
+                    key: "refresh",
                     iconProps: {
                       style: {
-                        color: '#999'
+                        color: "#999"
                       },
-                      iconName: 'Refresh'
+                      iconName: "Refresh"
                     },
                     style: {
-                      borderRight: '1px solid #ececeb',
-                      borderLeft: '1px solid #ececeb'
+                      borderRight: "1px solid #ececeb",
+                      borderLeft: "1px solid #ececeb"
                     },
                     onClick: () => {
                       data.dir = [];
@@ -102,43 +102,43 @@ export default observer(() => {
                     }
                   },
                   {
-                    key: 'newItem',
+                    key: "newItem",
                     subMenuProps: {
                       items: [
                         {
-                          key: 'newFile',
+                          key: "newFile",
                           iconProps: {
-                            iconName: 'FileHTML',
+                            iconName: "FileHTML",
                             style: {
-                              color: 'purple'
+                              color: "purple"
                             }
                           },
-                          name: 'New Component',
+                          name: "New Component",
                           onClick: () => {
                             data.dir.push({
                               isNew: true,
-                              type: 'file',
-                              name: '.tsx',
-                              relativePath: './.tsx'
+                              type: "file",
+                              name: ".tsx",
+                              relativePath: "./.tsx"
                             });
                           }
                         },
                         {
-                          key: 'newDir',
+                          key: "newDir",
                           iconProps: {
-                            iconName: 'Folder',
+                            iconName: "Folder",
                             style: {
-                              color: '#222'
+                              color: "#222"
                             }
                           },
-                          name: 'New Folder',
+                          name: "New Folder",
                           onClick: () => {
                             data.dir.push({
                               isNew: true,
-                              type: 'dir',
-                              name: '',
+                              type: "dir",
+                              name: "",
                               children: [],
-                              relativePath: './'
+                              relativePath: "./"
                             });
                           }
                         }
@@ -149,46 +149,46 @@ export default observer(() => {
               />
               <div
                 style={{
-                  position: 'relative',
-                  height: '100%'
+                  position: "relative",
+                  height: "100%"
                 }}
               >
                 <div
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     top: 0,
                     left: 0,
                     right: 0,
-                    overflow: 'auto',
+                    overflow: "auto",
                     bottom: 0
                   }}
                 >
                   <DndProvider backend={HTML5Backend}>
                     <FileTree
-                      path='./'
+                      path="./"
                       contextmenu={data.contextmenu}
                       onContextMenu={(file: any) => {
                         data.contextmenu = file.relativePath;
                       }}
                       onSelect={(file: any) => {
-                        if (file.type === 'file')
+                        if (file.type === "file")
                           data.selected = file.relativePath;
                       }}
                       onDragHover={(from: any, to: any) => {
-                        if (to.type === 'dir') {
+                        if (to.type === "dir") {
                           data.draghovered = to.relativePath;
                           setTimeout(() => {
                             to.expanded = true;
                           }, 300);
-                        } else data.draghovered = '';
+                        } else data.draghovered = "";
                       }}
                       onDrop={(from: any, to: any, dropIndex: number) => {
-                        data.draghovered = '';
+                        data.draghovered = "";
                         if (from.path.indexOf(from.file.relativePath) === 0) {
                           return;
                         }
                         if (
-                          to.type === 'dir' &&
+                          to.type === "dir" &&
                           to.children &&
                           to.children.indexOf(from.file) < 0
                         ) {
@@ -199,7 +199,7 @@ export default observer(() => {
                           }
                           Api.move(
                             from.file.relativePath,
-                            from.path + '/' + from.file.name
+                            from.path + "/" + from.file.name
                           );
                           from.file.relativePath = from.path + from.file.name;
                           to.children.push(from.file);
@@ -217,10 +217,10 @@ export default observer(() => {
                         if (data.dir.indexOf(from.file) < 0) {
                           Api.move(
                             from.file.relativePath,
-                            './' + from.file.name
+                            "./" + from.file.name
                           );
-                          data.draghovered = '';
-                          from.file.relativePath = './' + from.file.name;
+                          data.draghovered = "";
+                          from.file.relativePath = "./" + from.file.name;
                           from.parent.splice(from.index, 1);
                           data.dir.push(from.file);
                         }
@@ -232,16 +232,16 @@ export default observer(() => {
             </div>
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-                justifyContent: 'space-between',
-                padding: '0 20px'
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "space-between",
+                padding: "0 20px"
               }}
             >
               <Label
                 style={{
-                  color: '#999',
+                  color: "#999",
                   fontSize: 12
                 }}
               >
