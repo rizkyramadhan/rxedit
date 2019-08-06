@@ -3,7 +3,7 @@ import express from 'express';
 import fs from 'fs';
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import { Project, SourceFile } from 'ts-morph';
+import { Project, SourceFile, VariableDeclarationKind } from 'ts-morph';
 import { getDefaultComponent, getImport } from './parser';
 
 let rootPath = '../app/src/';
@@ -36,13 +36,17 @@ app.post('/source', (req: any, res: any) => {
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.getSourceFile(path);
   if (sf) {
+    const state = sf.getStatements()
+    console.log(state)
     res.send(
       JSON.stringify({
         import: getImport(sf),
-        default: getDefaultComponent(sf)
+        //default: getDefaultComponent(sf)
+        statements: sf.getStatements()
       })
     );
   }
+  
 });
 app.post('/new-file', (req: any, res: any) => {
   const path = req.body.path.replace('./', absPath + '/');
@@ -119,8 +123,154 @@ app.post('/add-import', (req: any, res: any) => {
   const sf = project.getSourceFile(path);
    
   if (sf) {
-    sf.insertStatements(0, "//Import bla bla");
+    sf.addImportDeclaration({
+      defaultImport: req.body.default,
+      moduleSpecifier: req.body.from,
+      namedImports: req.body.named
+    });
+
     project.saveSync();
     res.send('ok');
   }
+});
+
+
+app.post('/del-import', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  sf.getStatements()
+  if (sf) {
+    const imports = sf.getImportDeclaration(req.body.from);
+    imports.remove();
+    project.saveSync();
+    res.send('ok');
+  }
+});
+
+
+app.post('/edit-import', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+   
+  if (sf) {
+    const imports = sf.getImportDeclaration(req.body.from);
+    imports.remove();
+
+    sf.addImportDeclaration({
+      defaultImport: req.body.default,
+      moduleSpecifier: req.body.from,
+      namedImports: req.body.named
+    });
+    project.saveSync();
+    res.send('ok');
+  }
+});
+
+app.post('/add-var', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+      sf.addVariableStatement({
+        declarationKind: VariableDeclarationKind.Const, // defaults to "let"
+    declarations: [{
+        name: req.body.name,
+        initializer: req.body.init,
+        type:req.body.type
+    }
+  ]
+  });
+  }
+  project.saveSync();
+  res.send('ok');
+});
+
+app.post('/del-var', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    // const varb = sf.getVariableStatement(req.body.name)
+    const variableDeclaration = sf.getVariableDeclaration(req.body.name);
+    variableDeclaration.remove()
+  }
+  project.saveSync();
+  res.send('ok');
+});
+
+app.post('/edit-var', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    
+    const variableDeclaration = sf.getVariableDeclaration(req.body.name);
+    variableDeclaration.remove()
+
+      sf.addVariableStatement({
+        declarationKind: VariableDeclarationKind.Const, // defaults to "let"
+    declarations: [{
+        name: req.body.name,
+        initializer: req.body.init,
+        type:req.body.type
+    }
+  ]
+  });
+  const varb = sf.getVariableDeclaration(req.body.name);
+  // console.log(''+JSON.stringify({
+  //       import: getImport(sf),
+  //       default: getDefaultComponent(sf)
+  //       //statements: sf.getStatements()
+  //     })
+  //   )
+  }
+  project.saveSync();
+  res.send('ok');
+});
+
+app.post('/edit-var', (req: any, res: any) => {
+
+})
+
+
+app.post('/add-function', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+      sf.addFunction({
+        name: req.body.name,
+        parameters: req.body.params,
+        returnType: req.body.returnType,
+        statements:req.body.statements
+
+    });
+  }
+  project.saveSync();
+  res.send('ok');
+});
+
+app.post('/del-function', (req: any, res: any) => {
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+      const func = sf.getFunction(req.body.name)
+      func.remove()
+  }
+  project.saveSync();
+  res.send('ok');
+});
+
+app.post('/edit-function',( req:any, res: any) =>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    
+      sf.getFunction(req.body.name).remove()
+
+      sf.addFunction({
+        name: req.body.name,
+        parameters: req.body.params,
+        returnType: req.body.return
+
+    });
+  }
+  project.saveSync();
+  res.send('ok');
 });
