@@ -21,6 +21,18 @@ class variableModel {
   value: any
 };
 
+class functionModel {
+  name : String
+  return : String
+  params: Array<paramsModel>
+  body: any
+};
+
+class paramsModel{
+  name : String
+  type: String
+}
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
@@ -45,30 +57,46 @@ app.post('/source', (req: any, res: any) => {
   const sf = project.getSourceFile(path);
   if (sf) {
     const state = sf.getStatements()
-    //console.log((state[2] as  FunctionDeclaration).setIsExported(false));
-    //(state[2] as  FunctionDeclaration).setIsExported(true)
+    
     let statmen: Array<any>=[""]
     let vard: Array<variableModel>=[]
+    let func: Array<functionModel>=[]
     statmen.pop();
-
+    console.log()
     let i: number = 0;
     while (i < state.length) {
       statmen.push(state[i].getText())
+      
       if(state[i].getKindName()=="VariableStatement"){
-        console.log((state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName());
+        
         vard.push({"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
         ,"type":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getType().getText()
         ,"value":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getStructure().initializer})
+      } else if(state[i].getKindName()=="FunctionDeclaration"){
+        let paramss: Array<paramsModel>=[]
+        let j: number = 0;
+        
+        
+        while(j<(state[i] as FunctionDeclaration).getParameters().length){
+          console.log((state[i] as FunctionDeclaration).getParameters()[j].getSymbol().getEscapedName())
+          console.log((state[i] as FunctionDeclaration).getParameters()[j].getTypeNode().getText())
+
+          paramss.push({"name": (state[i] as FunctionDeclaration).getParameters()[j].getSymbol().getEscapedName(),
+          "type":(state[i] as FunctionDeclaration).getParameters()[j].getTypeNode().getText()}
+          )
+          j++;
+        }
+
+        func.push({"name":state[i].getSymbol().getEscapedName(),
+          "return":(state[i] as FunctionDeclaration).getReturnType().getText(),
+          "params":paramss,
+          "body" : (state[i] as FunctionDeclaration).getBody().getText()})
+        //console.log((state[i] as FunctionDeclaration).getParameter())
       }
+    
       i++;
     }
-    //statmen.reverse();
-    console.log(vard);
-
     
-
-    //console.log((state[2] as VariableStatement).getDeclarationList().getDeclarations()[0].getType().getText());
-    // console.log(getImport(sf));
     
     sf.saveSync();
     project.saveSync();
@@ -76,7 +104,9 @@ app.post('/source', (req: any, res: any) => {
       JSON.stringify({
         import: getImport(sf),
         //default: getDefaultComponent(sf)
-         variable:vard
+         variable:vard,
+         function:func
+
       })
     );
   }
@@ -241,7 +271,7 @@ app.post('/edit-var', (req: any, res: any) => {
       sf.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const, // defaults to "let"
     declarations: [{
-        name: req.body.name,
+        name: req.body.newname,
         initializer: req.body.init,
         type:req.body.type
     }
@@ -272,7 +302,8 @@ app.post('/add-function', (req: any, res: any) => {
         name: req.body.name,
         parameters: req.body.params,
         returnType: req.body.returnType,
-        statements:req.body.statements
+        statements:req.body.statements,
+        
 
     });
   }
@@ -299,9 +330,10 @@ app.post('/edit-function',( req:any, res: any) =>{
       sf.getFunction(req.body.name).remove()
 
       sf.addFunction({
-        name: req.body.name,
+        name: req.body.newname,
         parameters: req.body.params,
-        returnType: req.body.return
+        returnType: req.body.returnType,
+        statements: req.body.statements
 
     });
   }

@@ -13,15 +13,6 @@ test('list result is object', async () => {
   expect(typeof res.data).toBe('object');
 });
 
-test('get source file for first component', async () => {
-  let path = _.get(list, 'children.0.relativePath');
-  if (path) {
-    const res = await axios.post(`${url}/source`, {
-      path
-    });
-    expect(typeof res.data).toBe('object');
-  }
-});
 
 // CREATE
 test('create new component with random name at root directory', async () => {
@@ -141,6 +132,7 @@ test('Edit Variable', async() => {
   const res = await axios.post(`${url}/edit-var`,{
       path: newfile,
       name: 'nar',
+      newname:'newVar',
       init: '00',
       type: 'String'
   })
@@ -150,7 +142,7 @@ test('Edit Variable', async() => {
 test('delete Variable', async() => {
   const res = await axios.post(`${url}/del-var`,{
       path: newfile,
-      name: 'nar'
+      name: 'newVar'
   })
   expect(res.data).toEqual('ok');
 })
@@ -171,8 +163,9 @@ test('Edit Function', async() => {
   const res = await axios.post(`${url}/edit-function`,{
       path: newfile,
       name: "newFun",
+      newname:"newerFun",
         params: [{name: "song", type:"Any"}],
-        returnType: "Any",
+        returnType: "String",
         statements:"Halowww"
   })
   expect(res.data).toEqual('ok');
@@ -181,7 +174,7 @@ test('Edit Function', async() => {
 test('Delete Function', async() => {
   const res = await axios.post(`${url}/del-function`,{
       path: newfile,
-      name: "newFun"
+      name: "newerFun"
   })
   expect(res.data).toEqual('ok');
 })
@@ -201,3 +194,13 @@ test('Delete newdir', async() => {
   expect(res.data).toEqual('ok');
 })
 
+test('get source file for first component', async () => {
+  let path = _.get(list, 'children.0.relativePath');
+  
+  if (path) {
+    const res = await axios.post(`${url}/source`, {
+      path
+    });
+    expect(typeof res.data).toBe('object');
+  }
+});
