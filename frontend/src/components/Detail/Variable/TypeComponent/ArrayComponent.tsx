@@ -1,107 +1,67 @@
-import { observer } from "mobx-react-lite";
-import { IconButton, TextField } from "office-ui-fabric-react";
-import React from "react";
+import { observer, useObservable } from "mobx-react-lite";
+import { Label } from "office-ui-fabric-react";
+import React, { useEffect } from "react";
+import VariableComponent from "../VariableComponent";
 
-export default observer(({ props }: any) => {
-  props.value =
-    !!props.value && typeof props.value === "object" ? props.value : [];
+export default observer(({ props, setProps }: any) => {
+  const source = useObservable({
+    items: props.value || ([] as any)
+  });
+  const setVariable = (value: any) => {
+    let item = { ...props };
+    source.items = [...value];
+    item.value = source.items;
+    setProps(item);
+  };
+
+  useEffect(() => {
+    let value =
+      !!props.value && typeof props.value === "object" ? props.value : [];
+    setVariable(value);
+  }, [props]);
   return (
     <div>
-      {props.value.map((item: any, idx: number) => {
+      {source.items.map((item: any, idx: number) => {
+        console.log(item);
         return (
           <div
             key={idx}
             style={{
               display: "flex",
               flex: 1,
-              flexDirection: "row"
+              flexDirection: "row",
+              paddingBottom: 5
             }}
           >
-            <TextField
-              disabled
-              autoAdjustHeight
-              placeholder="key"
-              rows={3}
-              value={idx.toString()}
-              // onChange={(_e: any, val: any) => {
-              //   let items = props.value;
-              //   items[idx].key = val;
-              //   props.value = [...items];
-              // }}
-              styles={{
-                root: {
-                  width: 80,
-                  marginRight: 5,
-                  borderWidth: 1,
-                  borderColor: "#ccc",
-                  borderStyle: "solid",
-                  justifyContent: "center",
-                  flex: 1,
-                  display: "flex"
-                },
-                fieldGroup: {
-                  border: 0,
-                  flexGrow: 1
-                },
-                wrapper: {
-                  display: "flex",
-                  flex: 1,
-                  alignItems: "center",
-                  flexDirection: "column"
-                }
-              }}
-            />
-            <TextField
-              placeholder="value"
-              multiline
-              autoAdjustHeight
-              rows={3}
-              value={item}
-              onChange={(_e: any, val: any) => {
-                let items = props.value;
-                items[idx] = val;
-                props.value = [...items];
-              }}
-              styles={{
-                root: {
-                  flexGrow: 1,
-                  marginRight: 5
-                },
-                fieldGroup: {
-                  borderColor: "#ccc"
-                }
-              }}
-            />
-            <div
+            <Label
               style={{
-                flexDirection: "column",
-                display: "flex"
+                width: 25,
+                border: "1px solid #ccc",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "#fafafa",
+                marginRight: 2
               }}
             >
-              <IconButton
-                primary
-                iconProps={{ iconName: "Delete" }}
-                title="Delete"
-                ariaLabel="Delete"
-                styles={{
-                  rootHovered: {
-                    backgroundColor: "#d0000040"
-                  },
-                  iconHovered: {
-                    color: "#d00000"
-                  },
-                  root: {
-                    color: "#d00000",
-                    width: 35,
-                    marginRight: 5,
-                    flexGrow: 1
-                  }
-                }}
-                onClick={() => {
-                  let items = props.value;
-                  items.splice(idx, 1);
-                  props.value = [...items];
-                }}
+              {idx}
+            </Label>
+            <div
+              style={{
+                flexGrow: 1,
+                marginRight: 5,
+                border: 0,
+                borderTopWidth: 1,
+                borderRightWidth: 1,
+                borderColor: "#ccc",
+                borderStyle: "solid"
+              }}
+            >
+              <VariableComponent
+                index={idx}
+                props={source.items}
+                setProps={setVariable}
+                data={item}
               />
             </div>
           </div>
