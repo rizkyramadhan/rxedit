@@ -3,8 +3,9 @@ import express from 'express';
 import fs from 'fs';
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import { Project, SourceFile, VariableDeclarationKind } from 'ts-morph';
+import { Project, SourceFile, VariableDeclarationKind, ExportAssignment, FunctionDeclaration, VariableDeclaration, VariableStatement, VariableDeclarationList } from 'ts-morph';
 import { getDefaultComponent, getImport } from './parser';
+import { variableDeclaration } from '@babel/types';
 
 let rootPath = '../app/src/';
 let absPath = path.resolve(rootPath);
@@ -13,6 +14,13 @@ const port = 4000;
 let project = new Project({
   tsConfigFilePath: rootPath + '../tsconfig.json'
 });
+
+class variableModel {
+  name : String
+  type: String
+  value: any
+};
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
@@ -37,17 +45,43 @@ app.post('/source', (req: any, res: any) => {
   const sf = project.getSourceFile(path);
   if (sf) {
     const state = sf.getStatements()
-    console.log(state)
+    //console.log((state[2] as  FunctionDeclaration).setIsExported(false));
+    //(state[2] as  FunctionDeclaration).setIsExported(true)
+    let statmen: Array<any>=[""]
+    let vard: Array<variableModel>=[]
+    statmen.pop();
+
+    let i: number = 0;
+    while (i < state.length) {
+      statmen.push(state[i].getText())
+      if(state[i].getKindName()=="VariableStatement"){
+        console.log((state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName());
+        vard.push({"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
+        ,"type":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getType().getText()
+        ,"value":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getStructure().initializer})
+      }
+      i++;
+    }
+    //statmen.reverse();
+    console.log(vard);
+
+    
+
+    //console.log((state[2] as VariableStatement).getDeclarationList().getDeclarations()[0].getType().getText());
+    // console.log(getImport(sf));
+    
+    sf.saveSync();
+    project.saveSync();
     res.send(
       JSON.stringify({
         import: getImport(sf),
         //default: getDefaultComponent(sf)
-        statements: sf.getStatements()
+         variable:vard
       })
     );
   }
-  
 });
+
 app.post('/new-file', (req: any, res: any) => {
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.createSourceFile(
@@ -274,3 +308,24 @@ app.post('/edit-function',( req:any, res: any) =>{
   project.saveSync();
   res.send('ok');
 });
+
+app.post('/set-default-export',( req:any, res: any) =>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+      sf.getFunction(req.body.name).setIsDefaultExport(true);
+  }
+  project.saveSync();
+  res.send('ok');
+});
+
+app.post('/set-var-export',(req:any, res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    const variableDeclaration = sf.getVariableDeclaration(req.body.name).getVariableStatement();
+    
+  }
+  project.saveSync();
+  res.send('ok');
+})
