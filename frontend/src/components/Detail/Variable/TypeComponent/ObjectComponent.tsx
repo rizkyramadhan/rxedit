@@ -1,89 +1,96 @@
-import { useObservable, observer } from "mobx-react-lite";
-import { TextField } from "office-ui-fabric-react";
-import React, { useEffect } from "react";
-import VariableComponent from "../VariableComponent";
+import { toJS } from 'mobx';
+import React, { useEffect } from 'react';
+import VariableComponent, {
+  newValueByType,
+  getType
+} from '../VariableComponent';
+import { observer, useObservable } from 'mobx-react-lite';
 
-export default observer(({ props, setProps }: any) => {
-  const source = useObservable({
-    items: [] as any
+export default observer(({ value, setValue, depth }: any) => {
+  const meta = useObservable({
+    value: value || {}
   });
-  const setVariable = (value: any) => {
-    let item = { ...props };
-    source.items = [...value];
-    item.value = source.items;
-    setProps(item);
+
+  const setMetaValue = (newval: any) => {
+    meta.value = newval;
   };
 
   useEffect(() => {
-    let value =
-      !!props.value && typeof props.value === "object" ? props.value : [];
-    setVariable(value);
-  }, [props]);
+    setMetaValue(value);
+  }, [value]);
+
+  const valueKeys = Object.keys(meta.value);
+
   return (
-    <div>
-      {source.items.map((item: any, idx: number) => {
-        console.log(item);
+    <div style={{ paddingBottom: 0 }}>
+      {valueKeys.length === 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+
+            fontSize: 12,
+            color: '#333'
+          }}
+        >
+          &mdash; Object is empty &mdash;
+        </div>
+      )}
+      {valueKeys.map((key: string, idx: number) => {
+        const item = meta.value[key];
         return (
           <div
             key={idx}
             style={{
-              display: "flex",
+              display: 'flex',
               flex: 1,
-              flexDirection: "row",
-              paddingBottom: 5
+              flexDirection: 'row',
+              borderBottom:
+                idx !== valueKeys.length - 1 ? '1px solid #ccc' : '0px'
             }}
           >
-            <TextField
-              autoAdjustHeight
-              placeholder="key"
-              rows={3}
-              value={item.key}
-              onChange={(_e: any, val: any) => {
-                let items = source.items;
-                items[idx].key = val;
-                setVariable(items);
-              }}
-              styles={{
-                root: {
-                  width: 80,
-                  marginRight: 5,
-                  borderWidth: 1,
-                  borderColor: "#ccc",
-                  borderStyle: "solid",
-                  justifyContent: "center",
-                  flex: 1,
-                  display: "flex"
-                },
-                fieldGroup: {
-                  border: 0,
-                  flexGrow: 1
-                },
-                wrapper: {
-                  display: "flex",
-                  flex: 1,
-                  alignItems: "center",
-                  flexDirection: "column"
-                }
-              }}
-            />
             <div
               style={{
-                flexGrow: 1,
-                marginRight: 5,
-                border: 0,
-                borderTopWidth: 1,
-                borderRightWidth: 1,
-                borderColor: "#ccc",
-                borderStyle: "solid"
+                cursor: 'pointer',
+                flex: '0 15px',
+                borderRight: '1px solid #ccc',
+                display: 'flex',
+                alignItems: 'center',
+                userSelect: 'none',
+                background: `rgba(0,0,0,${0.5 - (depth / 4) * 0.5})`,
+                justifyContent: 'center'
               }}
             >
-              <VariableComponent
-                index={idx}
-                data={item}
-                props={source.items}
-                setProps={setVariable}
-              />
+              ⋮
             </div>
+            <VariableComponent
+              name={key}
+              value={item}
+              type={getType(item)}
+              depth={depth}
+              set={(kind: string, newval: any) => {
+                if (kind === 'value') {
+                  meta.value[key] = newval;
+                  setValue(meta.value);
+                } else if (kind === 'name') {
+                  meta.value[newval] = item;
+                  delete meta.value[key];
+                  setValue(meta.value);
+                } else if (kind === 'type') {
+                  meta.value[key] = newValueByType(newval);
+                  setValue(meta.value);
+                }
+              }}
+              unset={() => {
+                delete meta.value[key];
+                setValue(toJS(meta.value));
+              }}
+              editName={key === ''}
+              useDeclaration={false}
+            />
           </div>
         );
       })}

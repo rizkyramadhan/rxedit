@@ -1,69 +1,90 @@
-import { observer, useObservable } from "mobx-react-lite";
-import { Label } from "office-ui-fabric-react";
-import React, { useEffect } from "react";
-import VariableComponent from "../VariableComponent";
+import { toJS } from 'mobx';
+import { observer, useObservable } from 'mobx-react-lite';
+import React, { useEffect } from 'react';
+import VariableComponent, {
+  newValueByType,
+  getType
+} from '../VariableComponent';
 
-export default observer(({ props, setProps }: any) => {
-  const source = useObservable({
-    items: props.value || ([] as any)
+export default observer(({ value, setValue, depth }: any) => {
+  const meta = useObservable({
+    value: value || {},
+    expanded: [] as number[]
   });
-  const setVariable = (value: any) => {
-    let item = { ...props };
-    source.items = [...value];
-    item.value = source.items;
-    setProps(item);
+
+  const setMetaValue = (newval: any) => {
+    meta.value = newval;
   };
 
   useEffect(() => {
-    let value =
-      !!props.value && typeof props.value === "object" ? props.value : [];
-    setVariable(value);
-  }, [props]);
+    setMetaValue(value);
+  }, [value]);
+
+  const valueKeys = Object.keys(meta.value);
   return (
-    <div>
-      {source.items.map((item: any, idx: number) => {
-        console.log(item);
+    <div style={{ paddingBottom: 0 }}>
+      {valueKeys.map((key: string, idx: number) => {
+        const item = meta.value[key];
+        const idxExpanded = meta.expanded.indexOf(idx) >= 0;
         return (
           <div
             key={idx}
             style={{
-              display: "flex",
+              display: 'flex',
               flex: 1,
-              flexDirection: "row",
-              paddingBottom: 5
+              flexDirection: 'row',
+              borderBottom:
+                idx !== valueKeys.length - 1 ? '1px solid #ccc' : '0px'
             }}
           >
-            <Label
-              style={{
-                width: 25,
-                border: "1px solid #ccc",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#fafafa",
-                marginRight: 2
-              }}
-            >
-              {idx}
-            </Label>
             <div
+              onClick={() => {
+                if (idxExpanded) {
+                  meta.expanded.splice(meta.expanded.indexOf(idx), 1);
+                } else {
+                  meta.expanded.push(idx);
+                }
+              }}
               style={{
-                flexGrow: 1,
-                marginRight: 5,
-                border: 0,
-                borderTopWidth: 1,
-                borderRightWidth: 1,
-                borderColor: "#ccc",
-                borderStyle: "solid"
+                cursor: 'pointer',
+                flex: '0 15px',
+                borderRight: '1px solid #ccc',
+                display: 'flex',
+                alignItems: 'center',
+                background: `rgba(0,0,0,${0.5 - (depth / 4) * 0.5})`,
+                userSelect: 'none',
+                justifyContent: 'center'
               }}
             >
-              <VariableComponent
-                index={idx}
-                props={source.items}
-                setProps={setVariable}
-                data={item}
-              />
+              ⋮
             </div>
+            <VariableComponent
+              name={idx.toString()}
+              value={item}
+              type={getType(item)}
+              isNameEditable={false}
+              editName={false}
+              hideValue={!idxExpanded}
+              depth={depth}
+              set={(kind: string, newval: any) => {
+                if (kind === 'value') {
+                  meta.value[key] = newval;
+                  setValue(meta.value);
+                } else if (kind === 'name') {
+                  meta.value[newval] = item;
+                  delete meta.value[key];
+                  setValue(meta.value);
+                } else if (kind === 'type') {
+                  meta.value[key] = newValueByType(newval);
+                  setValue(meta.value);
+                }
+              }}
+              unset={() => {
+                delete meta.value[key];
+                setValue(toJS(meta.value));
+              }}
+              useDeclaration={false}
+            />
           </div>
         );
       })}

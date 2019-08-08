@@ -1,33 +1,25 @@
-import { observer } from "mobx-react-lite";
-import { TextField } from "office-ui-fabric-react";
-import React, { useEffect } from "react";
+import { observer } from 'mobx-react-lite';
+import { TextField } from 'office-ui-fabric-react';
+import React from 'react';
 
-export default observer(({ props, setProps }: any) => {
-  const setVariable = (value: any) => {
-    let item = props;
-    item.value = value;
-    setProps(item);
-  };
-  useEffect(() => {
-    let value =
-      !!props.value && typeof props.value === "string" ? props.value : "";
-    setVariable(value);
-  }, [props]);
+export default observer(({ value, setValue }: any) => {
   return (
     <TextField
       multiline
+      resizable={false}
+      spellCheck={false}
       autoAdjustHeight
-      rows={6}
-      value={props.value}
+      value={value}
       onChange={(_e: any, val: any) => {
-        setVariable(val);
+        setValue(val);
       }}
       styles={{
         fieldGroup: {
-          borderColor: "#ccc"
+          borderColor: '#ccc',
+          border: 0
         }
       }}
-      placeholder="value"
+      placeholder='value'
     />
   );
 });
