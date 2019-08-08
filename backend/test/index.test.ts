@@ -139,13 +139,22 @@ test('Edit Variable', async() => {
   expect(res.data).toEqual('ok');
 })
 
-test('delete Variable', async() => {
-  const res = await axios.post(`${url}/del-var`,{
+test('Set Variable Export', async() => {
+  const res = await axios.post(`${url}/set-var-export`,{
       path: newfile,
-      name: 'newVar'
+      name: "newVar",
+      export: true
   })
   expect(res.data).toEqual('ok');
 })
+
+// test('delete Variable', async() => {
+//   const res = await axios.post(`${url}/del-var`,{
+//       path: newfile,
+//       name: 'newVar'
+//   })
+//   expect(res.data).toEqual('ok');
+// })
 
 // FUNCTION
 test('Add Function', async() => {
@@ -171,21 +180,30 @@ test('Edit Function', async() => {
   expect(res.data).toEqual('ok');
 })
 
-test('Delete Function', async() => {
-  const res = await axios.post(`${url}/del-function`,{
+test('Set Function Export', async() => {
+  const res = await axios.post(`${url}/set-func-export`,{
       path: newfile,
-      name: "newerFun"
+      name: "newerFun",
+      export: true
   })
   expect(res.data).toEqual('ok');
 })
 
+// test('Delete Function', async() => {
+//   const res = await axios.post(`${url}/del-function`,{
+//       path: newfile,
+//       name: "newerFun"
+//   })
+//   expect(res.data).toEqual('ok');
+// })
+
 //DELETE
-test('Delete newfile', async() => {
-  const res = await axios.post(`${url}/del`,{
-      path: newfile
-  })
-  expect(res.data).toEqual('ok');
-})
+// test('Delete newfile', async() => {
+//   const res = await axios.post(`${url}/del`,{
+//       path: newfile
+//   })
+//   expect(res.data).toEqual('ok');
+// })
 
 test('Delete newdir', async() => {
   const res = await axios.post(`${url}/del`,{

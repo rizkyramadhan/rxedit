@@ -19,6 +19,7 @@ class variableModel {
   name : String
   type: String
   value: any
+  export: any
 };
 
 class functionModel {
@@ -26,6 +27,7 @@ class functionModel {
   return : String
   params: Array<paramsModel>
   body: any
+  export: any
 };
 
 class paramsModel{
@@ -71,7 +73,9 @@ app.post('/source', (req: any, res: any) => {
         
         vard.push({"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
         ,"type":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getType().getText()
-        ,"value":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getStructure().initializer})
+        ,"value":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getStructure().initializer,
+        "export":(state[i] as VariableStatement).isExported()
+      })
       } else if(state[i].getKindName()=="FunctionDeclaration"){
         let paramss: Array<paramsModel>=[]
         let j: number = 0;
@@ -90,7 +94,9 @@ app.post('/source', (req: any, res: any) => {
         func.push({"name":state[i].getSymbol().getEscapedName(),
           "return":(state[i] as FunctionDeclaration).getReturnType().getText(),
           "params":paramss,
-          "body" : (state[i] as FunctionDeclaration).getBody().getText()})
+          "body" : (state[i] as FunctionDeclaration).getBody().getText(),
+          "export":(state[i] as FunctionDeclaration).isExported()
+        })
         //console.log((state[i] as FunctionDeclaration).getParameter())
       }
     
@@ -103,10 +109,9 @@ app.post('/source', (req: any, res: any) => {
     res.send(
       JSON.stringify({
         import: getImport(sf),
-        //default: getDefaultComponent(sf)
          variable:vard,
-         function:func
-
+         function:func,
+        default: getDefaultComponent(sf)
       })
     );
   }
@@ -334,7 +339,6 @@ app.post('/edit-function',( req:any, res: any) =>{
         parameters: req.body.params,
         returnType: req.body.returnType,
         statements: req.body.statements
-
     });
   }
   project.saveSync();
@@ -355,8 +359,18 @@ app.post('/set-var-export',(req:any, res:any)=>{
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.getSourceFile(path);
   if(sf){
-    const variableDeclaration = sf.getVariableDeclaration(req.body.name).getVariableStatement();
-    
+    sf.getVariableDeclaration(req.body.name).getVariableStatement().setIsExported(req.body.export);
+  }
+  project.saveSync();
+  res.send('ok');
+})
+
+
+app.post('/set-func-export',(req:any, res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    sf.getFunction(req.body.name).setIsExported(true);
   }
   project.saveSync();
   res.send('ok');
