@@ -1,6 +1,6 @@
-import { observer } from 'mobx-react-lite';
-import { TextField } from 'office-ui-fabric-react';
-import React from 'react';
+import { observer } from "mobx-react-lite";
+import { TextField } from "office-ui-fabric-react";
+import React from "react";
 
 export default observer(({ value, setValue }: any) => {
   return (
@@ -8,7 +8,12 @@ export default observer(({ value, setValue }: any) => {
       rows={1}
       value={value.toString()}
       onChange={(_e: any, val: any) => {
-        setValue(parseInt(val.replace(/\D/g, '') || '0'));
+        setValue(parseInt(val.replace(/\D/g, "") || "0"));
+      }}
+      styles={{
+        fieldGroup: {
+          border: 0
+        }
       }}
     />
   );

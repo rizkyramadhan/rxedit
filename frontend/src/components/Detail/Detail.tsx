@@ -1,13 +1,20 @@
-import _ from 'lodash';
-import { observer, useObservable } from 'mobx-react-lite';
-import { IconButton, Label } from 'office-ui-fabric-react';
-import React, { useEffect } from 'react';
-import SplitPane from 'react-split-pane';
-import { Api } from '../../api/Api';
+import _ from "lodash";
+import { observer, useObservable } from "mobx-react-lite";
+import { IconButton, IDropdownOption, Label } from "office-ui-fabric-react";
+import React, { useEffect } from "react";
+import SplitPane from "react-split-pane";
+import { Api } from "../../api/Api";
 import VariableComponent, {
   detailAttrStyle,
   newValueByType
-} from './Variable/VariableComponent';
+} from "./Variable/VariableComponent";
+
+export const optionsDataType: IDropdownOption[] = [
+  { key: "if", text: "If-Else" },
+  { key: "for", text: "For" },
+  { key: "functionCall", text: "Function Call" },
+  { key: "variable", text: "Variable" }
+];
 
 const recurseFind = (array: any[], find: string) => {
   let found = undefined;
@@ -25,7 +32,7 @@ const recurseFind = (array: any[], find: string) => {
 };
 
 const Message = ({ text }: any) => (
-  <div style={{ textAlign: 'center', padding: 100, color: '#ccc' }}>
+  <div style={{ textAlign: "center", padding: 100, color: "#ccc" }}>
     &mdash; {text} &mdash;
   </div>
 );
@@ -39,54 +46,57 @@ export default observer(({ data }: any) => {
   useEffect(loadStructure.bind(source, file), [file]);
 
   if (data.loading) {
-    return <Message text='Loading components' />;
+    return <Message text="Loading components" />;
   }
   if (!data.selected) {
-    return <Message text='Please select a component' />;
+    return <Message text="Please select a component" />;
   }
   if (!file) {
-    return <Message text='Component not found, Please refresh the tree ' />;
+    return <Message text="Component not found, Please refresh the tree " />;
   }
-  const namesplit = file.name.split('.');
+  const namesplit = file.name.split(".");
   namesplit.pop();
-  const name = namesplit.join('.');
+  const name = namesplit.join(".");
   return (
     <SplitPane minSize={400}>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         <div
           style={{
-            padding: '6px 0px 5px 15px',
-            borderBottom: '1px solid #ccc',
-            display: 'flex',
-            alignItems: 'center',
+            padding: "6px 0px 5px 15px",
+            borderBottom: "1px solid #ccc",
+            display: "flex",
+            alignItems: "center",
             flexGrow: 1
           }}
         >
           <Label
             style={{
-              justifyContent: 'flex-start',
-              display: 'flex',
+              justifyContent: "flex-start",
+              display: "flex",
               flexGrow: 1
             }}
           >
-            {' '}
-            {name || '_'}{' '}
+            {" "}
+            {name || "_"}{" "}
           </Label>
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              flexDirection: 'row',
-              alignItems: 'center'
+              display: "flex",
+              justifyContent: "flex-end",
+              flexDirection: "row",
+              alignItems: "center"
             }}
           >
-            <Label style={detailAttrStyle}>
+            <Label
+              style={detailAttrStyle}
+              onClick={() => console.log(source.statements)}
+            >
               {source.import.length} Imports
             </Label>
             <IconButton
-              iconProps={{ iconName: 'CircleAddition' }}
-              title='Add Variable'
-              ariaLabel='Add Variable'
+              iconProps={{ iconName: "CircleAddition" }}
+              title="Add Variable"
+              ariaLabel="Add Variable"
               styles={{
                 root: {
                   height: 27
@@ -94,20 +104,20 @@ export default observer(({ data }: any) => {
               }}
               onClick={() => {
                 source.statements.push({
-                  name: 'NewVariable',
-                  value: { '': '' }
+                  name: "NewVariable",
+                  value: { "": "" }
                 });
               }}
             />
           </div>
         </div>
         <SplitPane
-          split='horizontal'
+          split="horizontal"
           minSize={91}
-          primary='second'
-          style={{ position: 'relative', height: '100%' }}
+          primary="second"
+          style={{ position: "relative", height: "100%" }}
           paneStyle={{
-            overflowY: 'auto'
+            overflowY: "auto"
           }}
         >
           <div>
@@ -116,7 +126,7 @@ export default observer(({ data }: any) => {
                 <div
                   key={idx}
                   style={{
-                    borderBottom: '1px solid #ccc'
+                    borderBottom: "1px solid #ccc"
                   }}
                 >
                   <VariableComponent
@@ -126,7 +136,7 @@ export default observer(({ data }: any) => {
                     value={item.value}
                     set={(kind: string, value: any) => {
                       source.statements[idx][kind] = value;
-                      if (kind === 'type') {
+                      if (kind === "type") {
                         source.statements[idx].value = newValueByType(value);
                       }
                     }}

@@ -1,31 +1,32 @@
-import { observer } from 'mobx-react-lite';
-import { ChoiceGroup, IChoiceGroupOptionStyles } from 'office-ui-fabric-react';
-import React from 'react';
+import { observer } from "mobx-react-lite";
+import { ChoiceGroup, IChoiceGroupOptionStyles } from "office-ui-fabric-react";
+import React from "react";
 
 export default observer(({ value, setValue }: any) => {
   return (
     <ChoiceGroup
-      className='defaultChoiceGroup'
+      className="defaultChoiceGroup"
       defaultSelectedKey={`${value}`}
       onChange={(_e: any, item: any) => {
-        setValue(item.key === 'true');
+        setValue(item.key === "true");
       }}
       options={[
         {
-          key: 'true',
-          text: 'True',
+          key: "true",
+          text: "True",
           styles: optionStyles
         },
         {
-          key: 'false',
-          text: 'False',
+          key: "false",
+          text: "False",
           styles: optionStyles
         }
       ]}
       styles={{
         flexContainer: {
-          flexDirection: 'row',
-          display: 'flex'
+          flexDirection: "row",
+          display: "flex",
+          padding: "5px 20px"
         }
       }}
     />
@@ -34,6 +35,7 @@ export default observer(({ value, setValue }: any) => {
 
 const optionStyles: Partial<IChoiceGroupOptionStyles> = {
   root: {
-    flexGrow: 1
+    flexGrow: 1,
+    margin: 0
   }
 };
