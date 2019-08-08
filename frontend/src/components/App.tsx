@@ -17,7 +17,7 @@ export default observer(() => {
   const data = useObservable({
     project: "",
     dir: [] as any[],
-    selected: "",
+    selected: "./Coba.tsx",
     draghovered: "",
     contextmenu: "",
     loading: true

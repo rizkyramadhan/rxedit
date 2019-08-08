@@ -1,20 +1,36 @@
-import { observer } from "mobx-react-lite";
-import { IconButton, TextField } from "office-ui-fabric-react";
-import React from "react";
+import { useObservable, observer } from "mobx-react-lite";
+import { TextField } from "office-ui-fabric-react";
+import React, { useEffect } from "react";
+import VariableComponent from "../VariableComponent";
 
-export default observer(({ props }: any) => {
-  props.value =
-    !!props.value && typeof props.value === "object" ? props.value : [];
+export default observer(({ props, setProps }: any) => {
+  const source = useObservable({
+    items: [] as any
+  });
+  const setVariable = (value: any) => {
+    let item = { ...props };
+    source.items = [...value];
+    item.value = source.items;
+    setProps(item);
+  };
+
+  useEffect(() => {
+    let value =
+      !!props.value && typeof props.value === "object" ? props.value : [];
+    setVariable(value);
+  }, [props]);
   return (
     <div>
-      {props.value.map((item: any, idx: number) => {
+      {source.items.map((item: any, idx: number) => {
+        console.log(item);
         return (
           <div
             key={idx}
             style={{
               display: "flex",
               flex: 1,
-              flexDirection: "row"
+              flexDirection: "row",
+              paddingBottom: 5
             }}
           >
             <TextField
@@ -23,9 +39,9 @@ export default observer(({ props }: any) => {
               rows={3}
               value={item.key}
               onChange={(_e: any, val: any) => {
-                let items = props.value;
+                let items = source.items;
                 items[idx].key = val;
-                props.value = [...items];
+                setVariable(items);
               }}
               styles={{
                 root: {
@@ -50,57 +66,22 @@ export default observer(({ props }: any) => {
                 }
               }}
             />
-            <TextField
-              placeholder="value"
-              multiline
-              autoAdjustHeight
-              rows={3}
-              value={item.value}
-              onChange={(_e: any, val: any) => {
-                let items = props.value;
-                items[idx].value = val;
-                props.value = [...items];
-              }}
-              styles={{
-                root: {
-                  flexGrow: 1,
-                  marginRight: 5
-                },
-                fieldGroup: {
-                  borderColor: "#ccc"
-                }
-              }}
-            />
             <div
               style={{
-                flexDirection: "column",
-                display: "flex"
+                flexGrow: 1,
+                marginRight: 5,
+                border: 0,
+                borderTopWidth: 1,
+                borderRightWidth: 1,
+                borderColor: "#ccc",
+                borderStyle: "solid"
               }}
             >
-              <IconButton
-                primary
-                iconProps={{ iconName: "Delete" }}
-                title="Delete"
-                ariaLabel="Delete"
-                styles={{
-                  rootHovered: {
-                    backgroundColor: "#d0000040"
-                  },
-                  iconHovered: {
-                    color: "#d00000"
-                  },
-                  root: {
-                    color: "#d00000",
-                    width: 35,
-                    marginRight: 5,
-                    flexGrow: 1
-                  }
-                }}
-                onClick={() => {
-                  let items = props.value;
-                  items.splice(idx, 1);
-                  props.value = [...items];
-                }}
+              <VariableComponent
+                index={idx}
+                data={item}
+                props={source.items}
+                setProps={setVariable}
               />
             </div>
           </div>

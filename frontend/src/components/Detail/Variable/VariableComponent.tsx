@@ -1,99 +1,122 @@
-import { observer, useObservable } from "mobx-react-lite";
 import {
   CommandBarButton,
   Dropdown,
+  DropdownMenuItemType,
   IButtonStyles,
   Icon,
+  IconButton,
   IDropdownOption,
   IDropdownStyles,
   ITextFieldStyles,
-  TextField,
-  IconButton
+  TextField
 } from "office-ui-fabric-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ArrayComponent from "./TypeComponent/ArrayComponent";
 import BooleanComponent from "./TypeComponent/BooleanComponent";
 import FunctionComponent from "./TypeComponent/FunctionComponent";
 import NumberComponent from "./TypeComponent/NumberComponent";
-import StringComponent from "./TypeComponent/StringComponent";
 import ObjectComponent from "./TypeComponent/ObjectComponent";
+import StringComponent from "./TypeComponent/StringComponent";
+import { useObservable, observer } from "mobx-react-lite";
 
-const optionsDataType: IDropdownOption[] = [
-  { key: "null", text: "Null" },
-  { key: "undifined", text: "Undefined" },
+export const optionsDataType: IDropdownOption[] = [
+  { key: "reactComponent", text: "React Component" },
   { key: "function", text: "Function" },
-  { key: "boolean", text: "Boolean" },
-  { key: "number", text: "Number" },
-  { key: "string", text: "String" },
+  { key: "divider_1", text: "-", itemType: DropdownMenuItemType.Divider },
   { key: "array", text: "Array" },
   { key: "object", text: "Object" },
-  { key: "reactComponent", text: "React Component" }
+  { key: "divider_2", text: "-", itemType: DropdownMenuItemType.Divider },
+  { key: "number", text: "Number" },
+  { key: "string", text: "String" },
+  { key: "boolean", text: "Boolean" },
+  { key: "divider_3", text: "-", itemType: DropdownMenuItemType.Divider },
+  { key: "null", text: "Null" },
+  { key: "undifined", text: "Undefined" }
 ];
 
-interface VariableProps {
-  type: "let" | "const";
-}
-
-export default observer(({ type = "const" }: VariableProps) => {
-  const props = useObservable({
-    name: "Data" as string,
+export default observer(({ index, props, setProps, data }: any) => {
+  const source = useObservable({
+    name: "string" as string,
     type: "const" as string,
-    dataType: "array" as string,
-    editedName: false as boolean,
-    value: undefined as any
+    dataType: "string" as string,
+    value: null as any
   });
+
+  const [editedName, setEditedName] = useState(false);
+  const setVariable = (value: any) => {
+    Object.keys(value).forEach((x: string) => {
+      (source as any)[x] = value[x];
+    });
+    let items = props;
+    items[index] = source;
+    setProps([...items]);
+  };
+
+  useEffect(() => {
+    setVariable(data);
+  }, [data]);
 
   return (
     <div
       style={{
         display: "flex",
         width: "100%",
-        height: "100%"
+        minHeight: 100,
+        borderWidth: 0,
+        borderBottomWidth: 1,
+        borderColor: "#ccc",
+        borderStyle: "solid"
       }}
     >
       <div
         style={{
+          position: "relative",
           flex: " 0 0 22px",
-          backgroundColor: type === "const" ? "#fafafa" : "transparent",
+          backgroundColor: source.type === "const" ? "#fafafa" : "transparent",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          userSelect: "none",
           borderRight: "1px solid #ccc"
         }}
       >
         <Dropdown
-          onRenderTitle={typeRenderTitle as any}
           onRenderOption={typeRenderOption as any}
           onRenderCaretDown={() => <div />}
           styles={typeDropdownStyles}
-          defaultSelectedKey={props.type}
+          defaultSelectedKey={source.type}
           options={[
             { key: "const", text: "const", data: { icon: "Uneditable" } },
             { key: "let", text: "let", data: { icon: "Edit" } }
           ]}
+          onChange={(_e: any, val: any) => {
+            let item = { ...source };
+            item.type = val.key;
+            setVariable(item);
+          }}
         />
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {props.editedName ? (
+        {editedName ? (
           <div
             style={{
               borderBottom: "1px solid #ccc",
-              padding: "5px 0px 5px 5px",
+              padding: "0",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between"
             }}
           >
             <TextField
-              value={props.name}
+              value={source.name}
               onChange={(_e: any, val: any) => {
-                props.name = val.replace(/^[^a-zA-Z_$][^a-zA-Z_$0-9]*$/, "");
+                let item = { ...source };
+                item.name = val.replace(/^[^a-zA-Z_$][^a-zA-Z_$0-9]*$/, "");
+                setVariable(item);
               }}
               styles={nameFieldStyle}
               autoFocus
               onBlur={() => {
-                if (!!props.name) props.editedName = false;
+                if (!!source.name) setEditedName(false);
               }}
               borderless
               placeholder="<Empty>"
@@ -104,17 +127,16 @@ export default observer(({ type = "const" }: VariableProps) => {
           <div
             style={{
               borderBottom: "1px solid #ccc",
-              padding: "5px 0px 5px 5px",
+              padding: "0",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between"
             }}
           >
             <CommandBarButton
-              data-automation-id="name"
-              text={props.name}
+              text={source.name}
               onClick={() => {
-                props.editedName = true;
+                setEditedName(true);
               }}
               styles={buttonNameStyles}
             />
@@ -127,40 +149,83 @@ export default observer(({ type = "const" }: VariableProps) => {
               <Dropdown
                 options={optionsDataType}
                 styles={dataTypeDropdownStyles}
-                defaultSelectedKey={props.dataType}
-                onChange={(_e: any, item: any) => {
-                  props.dataType = item.key;
+                defaultSelectedKey={source.dataType}
+                onChange={(_e: any, val: any) => {
+                  let item = { ...source };
+                  item.dataType = val.key;
+                  setVariable(item);
                 }}
               />
-              {props.dataType === "array" ? (
-                <IconButton
-                  iconProps={{ iconName: "CircleAddition" }}
-                  title="Add Item"
-                  ariaLabel="Add Item"
-                  styles={{
-                    root: {
-                      height: 27
-                    }
-                  }}
-                  onClick={() => {
-                    props.value.push(undefined);
-                  }}
-                />
-              ) : (
-                <IconButton
-                  iconProps={{ iconName: "CircleAddition" }}
-                  title="Add Item"
-                  ariaLabel="Add Item"
-                  styles={{
-                    root: {
-                      height: 27
-                    }
-                  }}
-                  onClick={() => {
-                    props.value.push({ key: props.value.length, value: null });
-                  }}
-                />
-              )}
+              {
+                ({
+                  array: (
+                    <IconButton
+                      iconProps={{ iconName: "CircleAddition" }}
+                      title="Add Item"
+                      ariaLabel="Add Item"
+                      styles={{
+                        root: {
+                          height: 27
+                        }
+                      }}
+                      onClick={() => {
+                        let item = { ...source };
+                        item.value.push({
+                          name: "string" as string,
+                          type: "const" as string,
+                          dataType: "string" as string,
+                          value: null as any
+                        });
+                        setVariable(item);
+                      }}
+                    />
+                  ),
+                  object: (
+                    <IconButton
+                      iconProps={{ iconName: "CircleAddition" }}
+                      title="Add Item"
+                      ariaLabel="Add Item"
+                      styles={{
+                        root: {
+                          height: 27
+                        }
+                      }}
+                      onClick={() => {
+                        let item = { ...source };
+                        item.value.push({
+                          key: source.value.length,
+                          value: {
+                            name: "string" as string,
+                            type: "const" as string,
+                            dataType: "string" as string,
+                            value: null as any
+                          }
+                        });
+                        setVariable(item);
+                      }}
+                    />
+                  )
+                } as any)[source.dataType]
+              }
+              <IconButton
+                iconProps={{ iconName: "CircleAddition" }}
+                title="Delete Variable"
+                ariaLabel="Delete Variable"
+                styles={{
+                  root: {
+                    height: 27
+                  },
+                  icon: {
+                    transform: "rotate(45deg)",
+                    color: "#d00000"
+                  }
+                }}
+                onClick={() => {
+                  let items = props;
+                  items.splice(index, 1);
+                  setProps([...items]);
+                }}
+              />
             </div>
           </div>
         )}
@@ -176,23 +241,33 @@ export default observer(({ type = "const" }: VariableProps) => {
               margin: 0,
               flex: 1,
               overflowY: "auto",
-              position: "absolute",
+              // position: "absolute",
               top: 0,
               left: 0,
               right: 0,
-              height: "100%",
-              padding: 10
+              // height: "100%",
+              padding: 5
             }}
           >
             {
               ({
-                function: <FunctionComponent props={props} />,
-                string: <StringComponent props={props} />,
-                number: <NumberComponent props={props} />,
-                boolean: <BooleanComponent props={props} />,
-                array: <ArrayComponent props={props} />,
-                object: <ObjectComponent props={props} />
-              } as any)[props.dataType]
+                function: (
+                  <FunctionComponent props={source} setProps={setVariable} />
+                ),
+                string: (
+                  <StringComponent props={source} setProps={setVariable} />
+                ),
+                number: (
+                  <NumberComponent props={source} setProps={setVariable} />
+                ),
+                boolean: (
+                  <BooleanComponent props={source} setProps={setVariable} />
+                ),
+                array: <ArrayComponent props={source} setProps={setVariable} />,
+                object: (
+                  <ObjectComponent props={source} setProps={setVariable} />
+                )
+              } as any)[source.dataType]
             }
           </div>
         </div>
@@ -270,12 +345,12 @@ const buttonNameStyles: Partial<IButtonStyles> = {
 
 const typeDropdownStyles: Partial<IDropdownStyles> = {
   dropdown: {
-    width: 80
+    width: 60
   },
   root: {
     transform: "rotate(270deg)",
-    position: "absolute",
-    top: 25
+    width: 20,
+    marginTop: 40
   },
   title: {
     backgroundColor: "#00000000",
@@ -283,31 +358,14 @@ const typeDropdownStyles: Partial<IDropdownStyles> = {
     border: 0,
     height: 25,
     lineHeight: 23,
-    textAlign: "right"
+    textAlign: "right",
+    paddingRight: 5
   },
   callout: {
-    marginTop: -75,
+    marginTop: -25,
     marginLeft: 25,
     minWidth: 100
   }
-};
-
-const typeRenderTitle = (options: IDropdownOption[]): JSX.Element => {
-  const option = options[0];
-
-  return (
-    <div>
-      <span>{option.text}</span>
-      {option.data && option.data.icon && (
-        <Icon
-          style={{ marginRight: 8, marginLeft: 8 }}
-          iconName={option.data.icon}
-          aria-hidden="true"
-          title={option.data.icon}
-        />
-      )}
-    </div>
-  );
 };
 
 const typeRenderOption = (option: IDropdownOption): JSX.Element => {
