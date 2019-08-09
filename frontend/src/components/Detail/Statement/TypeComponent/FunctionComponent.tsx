@@ -5,7 +5,7 @@ import VariableComponent, { newValueByType } from "../Variable";
 
 export default observer(({ value, setValue, depth }: any) => {
   const meta = useObservable({
-    value: value || [],
+    value: value || {},
     expanded: [] as number[]
   });
 
@@ -16,9 +16,10 @@ export default observer(({ value, setValue, depth }: any) => {
     setMetaValue(value);
   }, [value]);
 
+  const valueKeys = Object.keys(meta.value);
   return (
     <div style={{ paddingBottom: 0 }}>
-      {meta.value.length === 0 && (
+      {valueKeys.length === 0 && (
         <div
           style={{
             display: "flex",
@@ -34,7 +35,9 @@ export default observer(({ value, setValue, depth }: any) => {
           &mdash; Argument is empty &mdash;
         </div>
       )}
-      {meta.value.map((item: any, idx: number) => {
+      {valueKeys.map((key: string, idx: number) => {
+        const item = meta.value[key];
+        console.log(item);
         const idxExpanded = meta.expanded.indexOf(idx) >= 0;
         return (
           <div
@@ -75,14 +78,17 @@ export default observer(({ value, setValue, depth }: any) => {
               hideValue={!idxExpanded}
               depth={depth}
               set={(kind: string, newval: any) => {
-                meta.value[idx].state[kind] = newval;
+                meta.value[key].state[kind] = newval;
                 if (kind === "type") {
-                  meta.value[idx].state.value = newValueByType(newval);
+                  meta.value[key].state.value = newValueByType(newval);
+                } else if (kind === "name") {
+                  meta.value[newval] = item;
+                  delete meta.value[key];
                 }
                 setValue(toJS(meta.value));
               }}
               unset={() => {
-                meta.value.splice(idx, 1);
+                delete meta.value[key];
                 setValue(toJS(meta.value));
               }}
               useDeclaration={true}

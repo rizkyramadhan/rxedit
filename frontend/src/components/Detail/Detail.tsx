@@ -9,6 +9,7 @@ import Variable, {
   detailAttrStyle,
   newValueByType
 } from "./Statement/Variable";
+import IfElse from "./Statement/IfElse";
 
 export const statementType: IContextualMenuItem[] = [
   { key: "variable", text: "Variable" },
@@ -106,15 +107,34 @@ export default observer(({ data }: any) => {
               menuProps={{
                 items: statementType,
                 onItemClick: (_e: any, val: any) => {
-                  let name = val.key === "functionCall" ? "" : `New${val.text}`;
-                  let type = val.key === "variable" ? "string" : val.key;
+                  let name =
+                    ["functionCall", "ifelse"].indexOf(val.key) > -1
+                      ? ""
+                      : `New${val.text}`;
+                  let type = "string";
+                  if (["ifelse", "functionCall"].indexOf(val.key))
+                    type = "object";
+                  let declaration = val.key === "ifelse" ? "if" : "const";
+                  let value: any = newValueByType(type);
+                  if (type === "object")
+                    value = {
+                      "": {
+                        type: "variable",
+                        state: {
+                          name: "NewVariable",
+                          declaration: "const",
+                          type: "string",
+                          value: ""
+                        }
+                      }
+                    };
                   source.statements.push({
                     type: val.key,
                     state: {
                       name: name,
-                      declaration: "const",
+                      declaration: declaration,
                       type: type,
-                      value: ""
+                      value: value
                     }
                   });
                 }
@@ -169,6 +189,26 @@ export default observer(({ data }: any) => {
                       ),
                       functionCall: (
                         <FunctionCall
+                          depth={0}
+                          name={item.state.name}
+                          declaration={item.state.declaration}
+                          type={item.state.type}
+                          value={item.state.value}
+                          set={(kind: string, value: any) => {
+                            source.statements[idx].state[kind] = value;
+                            if (kind === "type") {
+                              source.statements[
+                                idx
+                              ].state.value = newValueByType(value);
+                            }
+                          }}
+                          unset={() => {
+                            source.statements.splice(idx, 1);
+                          }}
+                        />
+                      ),
+                      ifelse: (
+                        <IfElse
                           depth={0}
                           name={item.state.name}
                           declaration={item.state.declaration}

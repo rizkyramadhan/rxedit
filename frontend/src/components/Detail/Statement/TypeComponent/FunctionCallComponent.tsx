@@ -1,11 +1,13 @@
 import { observer } from "mobx-react-lite";
 import React from "react";
-import ArrayComponent from "./ArrayComponent";
+import ObjectComponent from "./ObjectComponent";
 
 export default observer(({ value, setValue, depth }: any) => {
+  const valueKeys = Object.keys(value);
+
   return (
     <div>
-      {value.length === 0 && (
+      {valueKeys.length === 0 && (
         <div
           style={{
             display: "flex",
@@ -20,8 +22,8 @@ export default observer(({ value, setValue, depth }: any) => {
           &mdash; Parameter is empty &mdash;
         </div>
       )}
-      {value.length > 0 && (
-        <ArrayComponent value={value} depth={depth} setValue={setValue} />
+      {valueKeys.length > 0 && (
+        <ObjectComponent value={value} depth={depth} setValue={setValue} />
       )}
     </div>
   );
