@@ -20,6 +20,9 @@ import ObjectComponent from "./TypeComponent/ObjectComponent";
 import StringComponent from "./TypeComponent/StringComponent";
 import NullComponent from "./TypeComponent/NullComponent";
 import UndefinedComponent from "./TypeComponent/UndefinedComponent";
+import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
+import StatementComponent from "./TypeComponent/StatementComponent";
+import { statementType } from "../Detail";
 
 export const optionsDataType: IDropdownOption[] = [
   { key: "array", text: "Array" },
@@ -37,6 +40,11 @@ export const optionsDataType: IDropdownOption[] = [
   { key: "divider_4", text: "-", itemType: DropdownMenuItemType.Divider },
   { key: "null", text: "Null" },
   { key: "undefined", text: "Undefined" }
+];
+
+export const optionsDeclaration: IDropdownOption[] = [
+  { key: "const", text: "const", data: { icon: "Uneditable" } },
+  { key: "let", text: "let", data: { icon: "Edit" } }
 ];
 
 interface VariableComponentProps {
@@ -64,7 +72,11 @@ export function newValueByType(type: string) {
     case "array":
       return [];
     case "object":
-      return {};
+      return { "": "" };
+    case "functionCall":
+      return [];
+    case "function":
+      return [];
   }
 }
 
@@ -123,12 +135,20 @@ export default observer(
               onRenderCaretDown={() => <div />}
               styles={typeDropdownStyles}
               defaultSelectedKey={declaration}
-              options={[
-                { key: "const", text: "const", data: { icon: "Uneditable" } },
-                { key: "let", text: "let", data: { icon: "Edit" } }
-              ]}
+              options={
+                ["statement", "function"].indexOf(type) >= -1
+                  ? [
+                      ...optionsDeclaration,
+                      {
+                        key: "return",
+                        text: "return",
+                        data: { icon: "ReturnKey" }
+                      }
+                    ]
+                  : optionsDeclaration
+              }
               onChange={(_e: any, val: any) => {
-                set("declaration", val);
+                set("declaration", val.key);
               }}
             />
           </div>
@@ -146,7 +166,11 @@ export default observer(
               <TextField
                 value={meta.tempEditName}
                 onChange={(_e: any, val: any) => {
-                  const name = val.replace(/^[^a-zA-Z_$]|[^0-9a-zA-Z_$]/gi, "");
+                  const pattern =
+                    type === "functionCall"
+                      ? /^[^a-zA-Z_$]|[^0-9a-zA-Z_$.]/gi
+                      : /^[^a-zA-Z_$]|[^0-9a-zA-Z_$]/gi;
+                  const name = val.replace(pattern, "");
                   meta.tempEditName = name;
                 }}
                 onKeyDown={(e: any) => {
@@ -164,7 +188,7 @@ export default observer(
                   }
                 }}
                 borderless
-                placeholder="<Empty>"
+                placeholder={type === "functionCall" ? "<Argument>" : "<Empty>"}
                 iconProps={{ iconName: "EditStyle" }}
               />
             </div>
@@ -174,19 +198,44 @@ export default observer(
                 padding: "0",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between"
+                justifyContent: "flex-end",
+                backgroundColor: "#fafafa"
               }}
             >
-              <CommandBarButton
-                text={name}
-                onClick={() => {
-                  if (isNameEditable) {
-                    meta.tempEditName = name;
-                    meta.editName = true;
+              {type !== "statement" && (
+                <CommandBarButton
+                  text={
+                    !!name
+                      ? name
+                      : type === "functionCall"
+                      ? "<Argument>"
+                      : "<Empty>"
                   }
-                }}
-                styles={buttonNameStyles}
-              />
+                  onClick={() => {
+                    if (isNameEditable) {
+                      meta.tempEditName = name;
+                      meta.editName = true;
+                    }
+                  }}
+                  styles={{
+                    root: {
+                      flex: 1,
+                      height: 27,
+                      background: "none"
+                    },
+                    label: {
+                      padding: 5,
+                      marginLeft: 0,
+                      fontSize: 13,
+                      textAlign: "left",
+                      textOverflow: "elipsis",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      fontStyle: type === "functionCall" ? "italic" : "normal"
+                    }
+                  }}
+                />
+              )}
               <div
                 style={{
                   display: "flex",
@@ -197,8 +246,9 @@ export default observer(
                   options={optionsDataType}
                   styles={dataTypeDropdownStyles}
                   defaultSelectedKey={type}
-                  onChange={(_e: any, val: any) => {
+                  onChanged={(val: any) => {
                     set("type", val.key);
+                    if (val.key === "functionCall") set("name", "");
                   }}
                 />
                 {
@@ -230,7 +280,55 @@ export default observer(
                         }}
                         onClick={() => {
                           set("value", { ...value, "": "" });
-                          console.log(value);
+                        }}
+                      />
+                    ),
+                    functionCall: (
+                      <IconButton
+                        iconProps={{ iconName: "CircleAddition" }}
+                        title="Add Item"
+                        ariaLabel="Add Item"
+                        style={{
+                          height: 27,
+                          borderRadius: 0,
+                          borderRight: "1px solid #ccc"
+                        }}
+                        onClick={() => {
+                          set("value", [...value, ""]);
+                        }}
+                      />
+                    ),
+                    function: (
+                      <IconButton
+                        iconProps={{ iconName: "CircleAddition" }}
+                        title="Add Variable"
+                        ariaLabel="Add Variable"
+                        styles={{
+                          root: {
+                            height: 27
+                          }
+                        }}
+                        menuProps={{
+                          items: statementType,
+                          onItemClick: (_e: any, val: any) => {
+                            set("value", [
+                              ...value,
+                              {
+                                type: val.key,
+                                state: {
+                                  name: `New${val.text}`,
+                                  declaration: "const",
+                                  type: "object",
+                                  value: { "": "" }
+                                }
+                              }
+                            ]);
+                          }
+                        }}
+                        menuIconProps={{
+                          style: {
+                            display: "none"
+                          }
                         }}
                       />
                     )
@@ -255,10 +353,10 @@ export default observer(
               </div>
             </div>
           )}
-          {!hideValue && (
+          {(!hideValue || useDeclaration) && (
             <div
               style={{
-                borderTop: "1px solid #ccc",
+                borderTop: "1px solid #ecebeb",
                 position: "relative",
                 width: "100%",
                 height: "100%",
@@ -277,7 +375,15 @@ export default observer(
               >
                 {
                   ({
-                    function: <FunctionComponent />,
+                    function: (
+                      <FunctionComponent
+                        value={value}
+                        depth={depth + 1}
+                        setValue={(newval: any) => {
+                          set("value", newval);
+                        }}
+                      />
+                    ),
                     string: (
                       <StringComponent
                         value={value}
@@ -335,6 +441,23 @@ export default observer(
                           set("value", newval);
                         }}
                       />
+                    ),
+                    functionCall: (
+                      <FunctionCallComponent
+                        value={value}
+                        depth={depth + 1}
+                        setValue={(newval: any) => {
+                          set("value", newval);
+                        }}
+                      />
+                    ),
+                    statement: (
+                      <StatementComponent
+                        value={value}
+                        setValue={(newval: any) => {
+                          set("value", newval);
+                        }}
+                      />
                     )
                   } as any)[type]
                 }
@@ -370,7 +493,8 @@ const dataTypeDropdownStyles: Partial<IDropdownStyles> = {
     height: 27,
     fontSize: 13,
     border: 0,
-    textAlign: "right"
+    textAlign: "right",
+    background: "none"
   },
   caretDownWrapper: {
     lineHeight: 25
@@ -378,9 +502,9 @@ const dataTypeDropdownStyles: Partial<IDropdownStyles> = {
   root: {
     height: 27,
     flexDirection: "column",
-    justifyContent: "flex-end",
-    borderRight: "1px solid #ccc",
-    borderLeft: "1px solid #ccc"
+    justifyContent: "flex-end"
+    // borderRight: "1px solid #ccc",
+    // borderLeft: "1px solid #ccc"
   },
   callout: {
     minWidth: 150
@@ -408,22 +532,6 @@ const nameFieldStyle: Partial<ITextFieldStyles> = {
   }
 };
 
-const buttonNameStyles: Partial<IButtonStyles> = {
-  root: {
-    flex: 1,
-    height: 27
-  },
-  label: {
-    padding: 5,
-    marginLeft: 0,
-    fontSize: 13,
-    textAlign: "left",
-    textOverflow: "elipsis",
-    whiteSpace: "nowrap",
-    overflow: "hidden"
-  }
-};
-
 const typeDropdownStyles: Partial<IDropdownStyles> = {
   dropdown: {
     width: 50
@@ -431,7 +539,7 @@ const typeDropdownStyles: Partial<IDropdownStyles> = {
   root: {
     transform: "rotate(270deg)",
     width: 20,
-    marginTop: 30
+    marginTop: 29
   },
   title: {
     backgroundColor: "#00000000",
@@ -444,7 +552,7 @@ const typeDropdownStyles: Partial<IDropdownStyles> = {
     paddingRight: 5
   },
   callout: {
-    marginTop: -25,
+    marginTop: -40,
     marginLeft: 25,
     minWidth: 100
   }

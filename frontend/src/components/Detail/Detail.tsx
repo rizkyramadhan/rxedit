@@ -1,6 +1,11 @@
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
-import { IconButton, IDropdownOption, Label } from "office-ui-fabric-react";
+import {
+  IconButton,
+  IContextualMenuItem,
+  IDropdownStyles,
+  Label
+} from "office-ui-fabric-react";
 import React, { useEffect } from "react";
 import SplitPane from "react-split-pane";
 import { Api } from "../../api/Api";
@@ -9,11 +14,11 @@ import VariableComponent, {
   newValueByType
 } from "./Variable/VariableComponent";
 
-export const optionsDataType: IDropdownOption[] = [
+export const statementType: IContextualMenuItem[] = [
+  { key: "variable", text: "Variable" },
   { key: "if", text: "If-Else" },
   { key: "for", text: "For" },
-  { key: "functionCall", text: "Function Call" },
-  { key: "variable", text: "Variable" }
+  { key: "functionCall", text: "Function Call" }
 ];
 
 const recurseFind = (array: any[], find: string) => {
@@ -62,7 +67,7 @@ export default observer(({ data }: any) => {
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         <div
           style={{
-            padding: "6px 0px 5px 15px",
+            padding: "0px 0px 0px 15px",
             borderBottom: "1px solid #ccc",
             display: "flex",
             alignItems: "center",
@@ -102,11 +107,24 @@ export default observer(({ data }: any) => {
                   height: 27
                 }
               }}
-              onClick={() => {
-                source.statements.push({
-                  name: "NewVariable",
-                  value: { "": "" }
-                });
+              menuProps={{
+                items: statementType,
+                onItemClick: (_e: any, val: any) => {
+                  source.statements.push({
+                    type: val.key,
+                    state: {
+                      name: `New${val.text}`,
+                      declaration: "const",
+                      type: "string",
+                      value: ""
+                    }
+                  });
+                }
+              }}
+              menuIconProps={{
+                style: {
+                  display: "none"
+                }
               }}
             />
           </div>
@@ -126,24 +144,32 @@ export default observer(({ data }: any) => {
                 <div
                   key={idx}
                   style={{
-                    borderBottom: "1px solid #ccc"
+                    borderBottom: "1px solid #ecebeb"
                   }}
                 >
-                  <VariableComponent
-                    name={item.name}
-                    depth={0}
-                    type={item.type}
-                    value={item.value}
-                    set={(kind: string, value: any) => {
-                      source.statements[idx][kind] = value;
-                      if (kind === "type") {
-                        source.statements[idx].value = newValueByType(value);
-                      }
-                    }}
-                    unset={() => {
-                      source.statements.splice(idx, 1);
-                    }}
-                  />
+                  {
+                    ({
+                      variable: (
+                        <VariableComponent
+                          name={item.state.name}
+                          depth={0}
+                          type={item.state.type}
+                          value={item.state.value}
+                          set={(kind: string, value: any) => {
+                            source.statements[idx].state[kind] = value;
+                            if (kind === "type") {
+                              source.statements[
+                                idx
+                              ].state.value = newValueByType(value);
+                            }
+                          }}
+                          unset={() => {
+                            source.statements.splice(idx, 1);
+                          }}
+                        />
+                      )
+                    } as any)[item.type]
+                  }
                 </div>
               );
             })}
@@ -165,4 +191,35 @@ const loadStructure = function(this: any, file: any) {
     }
   };
   fetch();
+};
+
+const statementTypeDropdownStyles: Partial<IDropdownStyles> = {
+  dropdown: {
+    minWidth: 33,
+    maxWidth: 150,
+    margin: 0
+  },
+  title: {
+    width: 0,
+    lineHeight: 25,
+    height: 27,
+    fontSize: 13,
+    border: 0,
+    textAlign: "right",
+    // paddingLeft: 0
+    display: "none"
+  },
+  caretDownWrapper: {
+    lineHeight: 35
+  },
+  root: {
+    height: 35,
+    flexDirection: "column",
+    justifyContent: "flex-end",
+    borderRight: "1px solid #ccc",
+    borderLeft: "1px solid #ccc"
+  },
+  callout: {
+    minWidth: 150
+  }
 };

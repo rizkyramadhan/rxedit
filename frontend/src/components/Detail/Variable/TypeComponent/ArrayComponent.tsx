@@ -31,12 +31,12 @@ export default observer(({ value, setValue, depth }: any) => {
             justifyContent: "center",
             width: "100%",
             height: "100%",
-
+            padding: "5px 0",
             fontSize: 12,
             color: "#333"
           }}
         >
-          &mdash; Array is empty &mdash;
+          &mdash; Function is empty &mdash;
         </div>
       )}
       {valueKeys.map((key: string, idx: number) => {
@@ -67,7 +67,7 @@ export default observer(({ value, setValue, depth }: any) => {
                 borderRight: "1px solid #ccc",
                 display: "flex",
                 alignItems: "center",
-                background: `rgba(0,0,0,${0.5 - (depth / 4) * 0.5})`,
+                background: `rgba(0,0,0,${0.5 - (depth / 4) * 0.2})`,
                 userSelect: "none",
                 justifyContent: "center"
               }}
