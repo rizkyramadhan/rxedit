@@ -38,6 +38,7 @@ export default observer(({ value, setValue, depth }: any) => {
       )}
       {valueKeys.map((key: string, idx: number) => {
         const item = meta.value[key];
+        console.log(item);
         const idxExpanded = meta.expanded.indexOf(idx) >= 0;
         return (
           <div
@@ -73,22 +74,19 @@ export default observer(({ value, setValue, depth }: any) => {
             </div>
             <VariableComponent
               name={key}
-              value={item}
-              type={getType(item)}
+              value={item.state.value}
+              type={item.state.type}
               hideValue={!idxExpanded}
               depth={depth}
               set={(kind: string, newval: any) => {
-                if (kind === "value") {
-                  meta.value[key] = newval;
-                  setValue(meta.value);
+                meta.value[key].state[kind] = newval;
+                if (kind === "type") {
+                  meta.value[key].state.value = newValueByType(newval);
                 } else if (kind === "name") {
                   meta.value[newval] = item;
                   delete meta.value[key];
-                  setValue(meta.value);
-                } else if (kind === "type") {
-                  meta.value[key] = newValueByType(newval);
-                  setValue(meta.value);
                 }
+                setValue(meta.value);
               }}
               unset={() => {
                 delete meta.value[key];

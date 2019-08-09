@@ -3,10 +3,16 @@ import {
   CommandBarButton,
   IconButton,
   ITextFieldStyles,
-  TextField
+  TextField,
+  Dropdown,
+  IDropdownOption,
+  Icon,
+  IDropdownStyles
 } from "office-ui-fabric-react";
 import React from "react";
 import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
+import { optionsDeclaration } from "./Variable";
+import { statementType } from "../Detail";
 
 interface VariableComponentProps {
   name: string;
@@ -51,6 +57,42 @@ export default observer(
           borderStyle: "solid"
         }}
       >
+        {useDeclaration && (
+          <div
+            style={{
+              position: "relative",
+              flex: " 0 0 22px",
+              backgroundColor:
+                declaration === "const" ? "#fafafa" : "transparent",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              borderRight: "1px solid #ccc"
+            }}
+          >
+            <Dropdown
+              onRenderOption={typeRenderOption as any}
+              onRenderCaretDown={() => <div />}
+              styles={typeDropdownStyles}
+              defaultSelectedKey={declaration}
+              options={
+                ["statement", "function"].indexOf(type) >= -1
+                  ? [
+                      ...optionsDeclaration,
+                      {
+                        key: "return",
+                        text: "return",
+                        data: { icon: "ReturnKey" }
+                      }
+                    ]
+                  : optionsDeclaration
+              }
+              onChange={(_e: any, val: any) => {
+                set("declaration", val.key);
+              }}
+            />
+          </div>
+        )}
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           {meta.editName ? (
             <div
@@ -150,7 +192,18 @@ export default observer(
                     borderRight: "1px solid #ccc"
                   }}
                   onClick={() => {
-                    set("value", [...value, ""]);
+                    set("value", [
+                      ...value,
+                      {
+                        type: "variable",
+                        state: {
+                          name: "NewVariable",
+                          declaration: "const",
+                          type: "string",
+                          value: ""
+                        }
+                      }
+                    ]);
                   }}
                 />
                 <IconButton
@@ -239,4 +292,46 @@ const nameFieldStyle: Partial<ITextFieldStyles> = {
     flex: 1,
     height: 27
   }
+};
+
+const typeDropdownStyles: Partial<IDropdownStyles> = {
+  dropdown: {
+    width: 50
+  },
+  root: {
+    transform: "rotate(270deg)",
+    width: 20,
+    marginTop: 29
+  },
+  title: {
+    backgroundColor: "#00000000",
+    padding: 0,
+    border: 0,
+    fontSize: 13,
+    height: 25,
+    lineHeight: 23,
+    textAlign: "right",
+    paddingRight: 5
+  },
+  callout: {
+    marginTop: -40,
+    marginLeft: 25,
+    minWidth: 100
+  }
+};
+
+const typeRenderOption = (option: IDropdownOption): JSX.Element => {
+  return (
+    <div>
+      {option.data && option.data.icon && (
+        <Icon
+          style={{ marginRight: "8px" }}
+          iconName={option.data.icon}
+          aria-hidden="true"
+          title={option.data.icon}
+        />
+      )}
+      <span style={{ fontSize: 13 }}>{option.text}</span>
+    </div>
+  );
 };

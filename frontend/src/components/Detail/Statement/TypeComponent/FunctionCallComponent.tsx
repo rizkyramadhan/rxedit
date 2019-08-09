@@ -13,7 +13,6 @@ export default observer(({ value, setValue, depth }: any) => {
             justifyContent: "center",
             width: "100%",
             height: "100%",
-
             fontSize: 12,
             color: "#333"
           }}

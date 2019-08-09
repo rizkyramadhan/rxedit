@@ -1,11 +1,11 @@
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import VariableComponent, { newValueByType, getType } from "../Variable";
+import VariableComponent, { newValueByType } from "../Variable";
 
 export default observer(({ value, setValue, depth }: any) => {
   const meta = useObservable({
-    value: value || {},
+    value: value || [],
     expanded: [] as number[]
   });
 
@@ -33,7 +33,7 @@ export default observer(({ value, setValue, depth }: any) => {
             color: "#333"
           }}
         >
-          &mdash; Function is empty &mdash;
+          &mdash; Array is empty &mdash;
         </div>
       )}
       {valueKeys.map((key: string, idx: number) => {
@@ -72,28 +72,22 @@ export default observer(({ value, setValue, depth }: any) => {
               ⋮
             </div>
             <VariableComponent
-              name={idx.toString()}
-              value={item}
-              type={getType(item)}
+              name={item.state.name}
+              value={item.state.value}
+              type={item.state.type}
               isNameEditable={false}
               editName={false}
               hideValue={!idxExpanded}
               depth={depth}
               set={(kind: string, newval: any) => {
-                if (kind === "value") {
-                  meta.value[key] = newval;
-                  setValue(meta.value);
-                } else if (kind === "name") {
-                  meta.value[newval] = item;
-                  delete meta.value[key];
-                  setValue(meta.value);
-                } else if (kind === "type") {
-                  meta.value[key] = newValueByType(newval);
-                  setValue(meta.value);
+                meta.value[idx].state[kind] = newval;
+                if (kind === "type") {
+                  meta.value[idx].state.value = newValueByType(newval);
                 }
+                setValue(meta.value);
               }}
               unset={() => {
-                meta.value.splice(key, 1);
+                meta.value.splice(idx, 1);
                 setValue(toJS(meta.value));
               }}
               useDeclaration={false}

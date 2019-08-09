@@ -5,14 +5,14 @@ import React, { useEffect } from "react";
 import SplitPane from "react-split-pane";
 import { Api } from "../../api/Api";
 import FunctionCall from "./Statement/FunctionCall";
-import VariableComponent, {
+import Variable, {
   detailAttrStyle,
   newValueByType
 } from "./Statement/Variable";
 
 export const statementType: IContextualMenuItem[] = [
   { key: "variable", text: "Variable" },
-  { key: "if", text: "If-Else" },
+  { key: "ifelse", text: "If-Else" },
   { key: "for", text: "For" },
   { key: "functionCall", text: "Function Call" }
 ];
@@ -148,9 +148,10 @@ export default observer(({ data }: any) => {
                   {
                     ({
                       variable: (
-                        <VariableComponent
-                          name={item.state.name}
+                        <Variable
                           depth={0}
+                          name={item.state.name}
+                          declaration={item.state.declaration}
                           type={item.state.type}
                           value={item.state.value}
                           set={(kind: string, value: any) => {
@@ -168,8 +169,9 @@ export default observer(({ data }: any) => {
                       ),
                       functionCall: (
                         <FunctionCall
-                          name={item.state.name}
                           depth={0}
+                          name={item.state.name}
+                          declaration={item.state.declaration}
                           type={item.state.type}
                           value={item.state.value}
                           set={(kind: string, value: any) => {

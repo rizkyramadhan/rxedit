@@ -248,6 +248,18 @@ export default observer(
                   onChanged={(val: any) => {
                     set("type", val.key);
                     if (val.key === "functionCall") set("name", "");
+                    if (val.key === "object")
+                      set("value", {
+                        "": {
+                          type: "variable",
+                          state: {
+                            name: "NewVariable",
+                            declaration: "const",
+                            type: "string",
+                            value: ""
+                          }
+                        }
+                      });
                   }}
                 />
                 {
@@ -263,7 +275,18 @@ export default observer(
                           borderRight: "1px solid #ccc"
                         }}
                         onClick={() => {
-                          set("value", [...value, ""]);
+                          set("value", [
+                            ...value,
+                            {
+                              type: "variable",
+                              state: {
+                                name: "NewVariable",
+                                declaration: "const",
+                                type: "string",
+                                value: ""
+                              }
+                            }
+                          ]);
                         }}
                       />
                     ),
@@ -278,7 +301,18 @@ export default observer(
                           borderRight: "1px solid #ccc"
                         }}
                         onClick={() => {
-                          set("value", { ...value, "": "" });
+                          set("value", {
+                            ...value,
+                            "": {
+                              type: "variable",
+                              state: {
+                                name: "NewVariable",
+                                declaration: "const",
+                                type: "string",
+                                value: ""
+                              }
+                            }
+                          });
                         }}
                       />
                     ),
