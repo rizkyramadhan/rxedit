@@ -358,7 +358,7 @@ export default observer(
                             set("value", {
                               ...value,
                               "": {
-                                type: "variable",
+                                type: val.key,
                                 state: {
                                   name: "NewVariable",
                                   declaration: "const",
@@ -547,8 +547,6 @@ const dataTypeDropdownStyles: Partial<IDropdownStyles> = {
     height: 27,
     flexDirection: "column",
     justifyContent: "flex-end"
-    // borderRight: "1px solid #ccc",
-    // borderLeft: "1px solid #ccc"
   },
   callout: {
     minWidth: 150
