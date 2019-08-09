@@ -135,7 +135,7 @@ export default observer(
               styles={typeDropdownStyles}
               defaultSelectedKey={declaration}
               options={
-                ["statement", "function"].indexOf(type) >= -1
+                ["statement", "function"].indexOf(type) > -1
                   ? [
                       ...optionsDeclaration,
                       {

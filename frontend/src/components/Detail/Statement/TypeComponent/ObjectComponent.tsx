@@ -38,7 +38,6 @@ export default observer(({ value, setValue, depth }: any) => {
       )}
       {valueKeys.map((key: string, idx: number) => {
         const item = meta.value[key];
-        console.log(item);
         const idxExpanded = meta.expanded.indexOf(idx) >= 0;
         return (
           <div
