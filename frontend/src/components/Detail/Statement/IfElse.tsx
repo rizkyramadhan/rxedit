@@ -23,23 +23,31 @@ interface VariableComponentProps {
   editName?: boolean;
   depth: 0;
   isNameEditable?: boolean;
+  isFirstCondition?: boolean;
   set: (kind: string, value: any) => void;
   unset: () => void;
 }
+
+const optionsCond = [
+  { key: "if", text: "if" },
+  { key: "else", text: "else" },
+  { key: "elseif", text: "else if" }
+];
 
 export default observer(
   ({
     name,
     value,
     type = "object",
-    declaration = "const",
+    declaration = "if",
     useDeclaration = true,
     set,
     unset,
     depth = 0,
     hideValue = false,
     editName = false,
-    isNameEditable = true
+    isNameEditable = true,
+    isFirstCondition = false
   }: VariableComponentProps) => {
     const meta = useObservable({
       editName,
@@ -72,11 +80,11 @@ export default observer(
             onRenderCaretDown={() => <div />}
             styles={typeDropdownStyles}
             defaultSelectedKey={declaration}
-            options={[
-              { key: "if", text: "if" },
-              { key: "else", text: "else" },
-              { key: "elseif", text: "else if" }
-            ]}
+            options={
+              !isFirstCondition
+                ? [...optionsCond]
+                : [...optionsCond.slice(0, 1)]
+            }
             onChange={(_e: any, val: any) => {
               set("declaration", val.key);
             }}
@@ -130,7 +138,7 @@ export default observer(
             >
               {type !== "statement" && (
                 <CommandBarButton
-                  text={!!name ? name : "<Condition>"}
+                  text={meta.tempEditName || "<Condition>"}
                   onClick={() => {
                     if (isNameEditable) {
                       meta.tempEditName = name;

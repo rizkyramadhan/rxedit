@@ -10,11 +10,12 @@ import Variable, {
   newValueByType
 } from "./Statement/Variable";
 import IfElse from "./Statement/IfElse";
+import Looping from "./Statement/Looping";
 
 export const statementType: IContextualMenuItem[] = [
   { key: "variable", text: "Variable" },
   { key: "ifelse", text: "If-Else" },
-  { key: "for", text: "For" },
+  { key: "looping", text: "Looping" },
   { key: "functionCall", text: "Function Call" }
 ];
 
@@ -114,7 +115,9 @@ export default observer(({ data }: any) => {
                   let type = "string";
                   if (["ifelse", "functionCall"].indexOf(val.key))
                     type = "object";
-                  let declaration = val.key === "ifelse" ? "if" : "const";
+                  let declaration = "const";
+                  if (val.key === "ifelse") declaration = "if";
+                  else if (val.key === "looping") declaration = "for";
                   let value: any = newValueByType(type);
                   if (type === "object")
                     value = {
@@ -209,6 +212,27 @@ export default observer(({ data }: any) => {
                       ),
                       ifelse: (
                         <IfElse
+                          depth={0}
+                          name={item.state.name}
+                          declaration={item.state.declaration}
+                          type={item.state.type}
+                          value={item.state.value}
+                          isFirstCondition={idx === 0}
+                          set={(kind: string, value: any) => {
+                            source.statements[idx].state[kind] = value;
+                            if (kind === "type") {
+                              source.statements[
+                                idx
+                              ].state.value = newValueByType(value);
+                            }
+                          }}
+                          unset={() => {
+                            source.statements.splice(idx, 1);
+                          }}
+                        />
+                      ),
+                      looping: (
+                        <Looping
                           depth={0}
                           name={item.state.name}
                           declaration={item.state.declaration}

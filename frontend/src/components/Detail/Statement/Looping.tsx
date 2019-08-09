@@ -10,8 +10,8 @@ import {
   TextField
 } from "office-ui-fabric-react";
 import React from "react";
-import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
-import { optionsDeclaration } from "./Variable";
+import { statementType } from "../Detail";
+import ObjectComponent from "./TypeComponent/ObjectComponent";
 
 interface VariableComponentProps {
   name: string;
@@ -32,7 +32,7 @@ export default observer(
     name,
     value,
     type = "object",
-    declaration = "const",
+    declaration = "for",
     useDeclaration = true,
     set,
     unset,
@@ -45,7 +45,7 @@ export default observer(
       editName,
       tempEditName: name
     });
-
+    const valueKeys = Object.keys(value);
     return (
       <div
         style={{
@@ -56,41 +56,33 @@ export default observer(
           borderStyle: "solid"
         }}
       >
-        {useDeclaration && (
-          <div
-            style={{
-              position: "relative",
-              flex: " 0 0 22px",
-              backgroundColor: "#fafafa",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              borderRight: "1px solid #ccc"
+        <div
+          style={{
+            position: "relative",
+            flex: " 0 0 22px",
+            backgroundColor: "#fafafa",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            borderRight: "1px solid #ccc"
+          }}
+        >
+          <Dropdown
+            onRenderOption={typeRenderOption as any}
+            onRenderCaretDown={() => <div />}
+            styles={typeDropdownStyles}
+            defaultSelectedKey={declaration}
+            options={[
+              { key: "for", text: "for" },
+              { key: "foreach", text: "foreach" },
+              { key: "while", text: "while" },
+              { key: "dowhile", text: "do while" }
+            ]}
+            onChange={(_e: any, val: any) => {
+              set("declaration", val.key);
             }}
-          >
-            <Dropdown
-              onRenderOption={typeRenderOption as any}
-              onRenderCaretDown={() => <div />}
-              styles={typeDropdownStyles}
-              defaultSelectedKey={declaration}
-              options={
-                ["statement", "function"].indexOf(type) >= -1
-                  ? [
-                      ...optionsDeclaration,
-                      {
-                        key: "return",
-                        text: "return",
-                        data: { icon: "ReturnKey" }
-                      }
-                    ]
-                  : optionsDeclaration
-              }
-              onChange={(_e: any, val: any) => {
-                set("declaration", val.key);
-              }}
-            />
-          </div>
-        )}
+          />
+        </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           {meta.editName ? (
             <div
@@ -104,7 +96,7 @@ export default observer(
               <TextField
                 value={meta.tempEditName}
                 onChange={(_e: any, val: any) => {
-                  const pattern = /^[^a-zA-Z_$]|[^0-9a-zA-Z_$.]/gi;
+                  const pattern = /^[^a-zA-Z_$(]|[\n\t]/gi;
                   const name = val.replace(pattern, "");
                   meta.tempEditName = name;
                 }}
@@ -123,7 +115,7 @@ export default observer(
                   }
                 }}
                 borderless
-                placeholder="<Function Name>"
+                placeholder="<Condition>"
                 iconProps={{ iconName: "EditStyle" }}
               />
             </div>
@@ -139,7 +131,7 @@ export default observer(
             >
               {type !== "statement" && (
                 <CommandBarButton
-                  text={meta.tempEditName || "<Function Name>"}
+                  text={!!name ? name : "<Condition>"}
                   onClick={() => {
                     if (isNameEditable) {
                       meta.tempEditName = name;
@@ -173,26 +165,34 @@ export default observer(
               >
                 <IconButton
                   iconProps={{ iconName: "CircleAddition" }}
-                  title="Add Item"
-                  ariaLabel="Add Item"
-                  style={{
-                    height: 27,
-                    borderRadius: 0,
-                    borderRight: "1px solid #ccc"
+                  title="Add Variable"
+                  ariaLabel="Add Variable"
+                  styles={{
+                    root: {
+                      height: 27
+                    }
                   }}
-                  onClick={() => {
-                    set("value", {
-                      ...value,
-                      "": {
-                        type: "variable",
-                        state: {
-                          name: "NewVariable",
-                          declaration: "const",
-                          type: "string",
-                          value: ""
+                  menuProps={{
+                    items: statementType,
+                    onItemClick: (_e: any, val: any) => {
+                      set("value", {
+                        ...value,
+                        "": {
+                          type: "variable",
+                          state: {
+                            name: "NewVariable",
+                            declaration: "const",
+                            type: "string",
+                            value: ""
+                          }
                         }
-                      }
-                    });
+                      });
+                    }
+                  }}
+                  menuIconProps={{
+                    style: {
+                      display: "none"
+                    }
                   }}
                 />
                 <IconButton
@@ -214,34 +214,53 @@ export default observer(
               </div>
             </div>
           )}
-          <div
-            style={{
-              borderTop: "1px solid #ecebeb",
-              position: "relative",
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center"
-            }}
-          >
+          {(!hideValue || useDeclaration) && (
             <div
               style={{
-                margin: 0,
-                flex: 1,
-                top: 0,
-                left: 0,
-                right: 0
+                borderTop: "1px solid #ecebeb",
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center"
               }}
             >
-              <FunctionCallComponent
-                value={value}
-                depth={depth + 1}
-                setValue={(newval: any) => {
-                  set("value", newval);
+              <div
+                style={{
+                  margin: 0,
+                  flex: 1,
+                  top: 0,
+                  left: 0,
+                  right: 0
                 }}
-              />
+              >
+                {valueKeys.length === 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      height: "100%",
+                      fontSize: 12,
+                      color: "#333"
+                    }}
+                  >
+                    &mdash; Argument is empty &mdash;
+                  </div>
+                )}
+                {valueKeys.length > 0 && (
+                  <ObjectComponent
+                    value={value}
+                    depth={depth + 1}
+                    setValue={(newval: any) => {
+                      set("value", newval);
+                    }}
+                  />
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     );

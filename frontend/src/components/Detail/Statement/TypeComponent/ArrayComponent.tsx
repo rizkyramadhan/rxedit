@@ -64,7 +64,7 @@ export default observer(({ value, setValue, depth }: any) => {
                 borderRight: "1px solid #ccc",
                 display: "flex",
                 alignItems: "center",
-                background: `rgba(0,0,0,${0.5 - (depth / 4) * 0.2})`,
+                background: `rgba(0,0,0,${0.3 - (depth / 6) * 0.2})`,
                 userSelect: "none",
                 justifyContent: "center"
               }}
