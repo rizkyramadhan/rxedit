@@ -184,7 +184,17 @@ test('Set Function Export', async() => {
   const res = await axios.post(`${url}/set-func-export`,{
       path: newfile,
       name: "newerFun",
+      params: [{name: "sing", type:"Any"}],
       export: true
+  })
+  expect(res.data).toEqual('ok');
+})
+
+test('Call function', async() => {
+  const res = await axios.post(`${url}/call-function`,{
+      path: newfile,
+      function: "newerFun",
+      params: "'haloo'"
   })
   expect(res.data).toEqual('ok');
 })

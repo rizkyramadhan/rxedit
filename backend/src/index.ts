@@ -1,9 +1,9 @@
 import cors from 'cors';
 import express from 'express';
-import fs from 'fs';
+import fs, { stat } from 'fs';
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import { Project, SourceFile, VariableDeclarationKind, ExportAssignment, FunctionDeclaration, VariableDeclaration, VariableStatement, VariableDeclarationList } from 'ts-morph';
+import { Project, SourceFile, VariableDeclarationKind, ExportAssignment, FunctionDeclaration, VariableDeclaration, VariableStatement, VariableDeclarationList, SyntaxKind, ExpressionStatement } from 'ts-morph';
 import { getDefaultComponent, getImport } from './parser';
 import { variableDeclaration } from '@babel/types';
 
@@ -35,6 +35,15 @@ class paramsModel{
   type: String
 }
 
+class callParamsModel{
+  value : any
+}
+
+class callFunc{
+  name : String
+  params: Array<callParamsModel>
+}
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
@@ -63,12 +72,13 @@ app.post('/source', (req: any, res: any) => {
     let statmen: Array<any>=[""]
     let vard: Array<variableModel>=[]
     let func: Array<functionModel>=[]
+    let callFunc: Array<callFunc>=[]
     statmen.pop();
     console.log()
     let i: number = 0;
     while (i < state.length) {
       statmen.push(state[i].getText())
-      
+      console.log(state[i].getKindName())
       if(state[i].getKindName()=="VariableStatement"){
         
         vard.push({"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
@@ -98,6 +108,24 @@ app.post('/source', (req: any, res: any) => {
           "export":(state[i] as FunctionDeclaration).isExported()
         })
         //console.log((state[i] as FunctionDeclaration).getParameter())
+      }else if (state[i].getKindName()=="ExpressionStatement"){
+        //console.log((state[i] as ExpressionStatement).getExpression()
+        let paramss: Array<callParamsModel>=[]
+        let j=0;
+        for (const callExpression of state[i].getDescendantsOfKind(SyntaxKind.CallExpression)) {
+          while (j<callExpression.getArguments().length){
+            paramss.push({"value": callExpression.getArguments()[j].getText()});
+            j++
+          }
+          console.log(callExpression.getArguments()[0].getText())
+          
+        }
+
+        for (const identifier of state[i].getDescendantsOfKind(SyntaxKind.Identifier)) {
+          console.log(identifier.getText())
+          callFunc.push({"name": identifier.getText(),
+        "params":paramss})
+        }
       }
     
       i++;
@@ -111,10 +139,12 @@ app.post('/source', (req: any, res: any) => {
         import: getImport(sf),
          variable:vard,
          function:func,
+         calledFunction:callFunc,
         default: getDefaultComponent(sf)
       })
     );
   }
+  
 });
 
 app.post('/new-file', (req: any, res: any) => {
@@ -282,13 +312,6 @@ app.post('/edit-var', (req: any, res: any) => {
     }
   ]
   });
-  const varb = sf.getVariableDeclaration(req.body.name);
-  // console.log(''+JSON.stringify({
-  //       import: getImport(sf),
-  //       default: getDefaultComponent(sf)
-  //       //statements: sf.getStatements()
-  //     })
-  //   )
   }
   project.saveSync();
   res.send('ok');
@@ -307,10 +330,9 @@ app.post('/add-function', (req: any, res: any) => {
         name: req.body.name,
         parameters: req.body.params,
         returnType: req.body.returnType,
-        statements:req.body.statements,
-        
-
+        statements:req.body.statements
     });
+    
   }
   project.saveSync();
   res.send('ok');
@@ -371,6 +393,19 @@ app.post('/set-func-export',(req:any, res:any)=>{
   const sf = project.getSourceFile(path);
   if(sf){
     sf.getFunction(req.body.name).setIsExported(true);
+  }
+  project.saveSync();
+  res.send('ok');
+})
+
+app.post('/call-function',(req:any, res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    // const selectedFunction=sf.getFunction(req.body.name)
+    // const i = 0;
+    
+  sf.addStatements(req.body.function+"("+req.body.params+");");
   }
   project.saveSync();
   res.send('ok');
