@@ -1,18 +1,14 @@
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
-import {
-  IconButton,
-  IContextualMenuItem,
-  IDropdownStyles,
-  Label
-} from "office-ui-fabric-react";
+import { IconButton, IContextualMenuItem, Label } from "office-ui-fabric-react";
 import React, { useEffect } from "react";
 import SplitPane from "react-split-pane";
 import { Api } from "../../api/Api";
+import FunctionCall from "./Statement/FunctionCall";
 import VariableComponent, {
   detailAttrStyle,
   newValueByType
-} from "./Variable/VariableComponent";
+} from "./Statement/Variable";
 
 export const statementType: IContextualMenuItem[] = [
   { key: "variable", text: "Variable" },
@@ -110,12 +106,14 @@ export default observer(({ data }: any) => {
               menuProps={{
                 items: statementType,
                 onItemClick: (_e: any, val: any) => {
+                  let name = val.key === "functionCall" ? "" : `New${val.text}`;
+                  let type = val.key === "variable" ? "string" : val.key;
                   source.statements.push({
                     type: val.key,
                     state: {
-                      name: `New${val.text}`,
+                      name: name,
                       declaration: "const",
-                      type: "string",
+                      type: type,
                       value: ""
                     }
                   });
@@ -167,6 +165,25 @@ export default observer(({ data }: any) => {
                             source.statements.splice(idx, 1);
                           }}
                         />
+                      ),
+                      functionCall: (
+                        <FunctionCall
+                          name={item.state.name}
+                          depth={0}
+                          type={item.state.type}
+                          value={item.state.value}
+                          set={(kind: string, value: any) => {
+                            source.statements[idx].state[kind] = value;
+                            if (kind === "type") {
+                              source.statements[
+                                idx
+                              ].state.value = newValueByType(value);
+                            }
+                          }}
+                          unset={() => {
+                            source.statements.splice(idx, 1);
+                          }}
+                        />
                       )
                     } as any)[item.type]
                   }
@@ -191,35 +208,4 @@ const loadStructure = function(this: any, file: any) {
     }
   };
   fetch();
-};
-
-const statementTypeDropdownStyles: Partial<IDropdownStyles> = {
-  dropdown: {
-    minWidth: 33,
-    maxWidth: 150,
-    margin: 0
-  },
-  title: {
-    width: 0,
-    lineHeight: 25,
-    height: 27,
-    fontSize: 13,
-    border: 0,
-    textAlign: "right",
-    // paddingLeft: 0
-    display: "none"
-  },
-  caretDownWrapper: {
-    lineHeight: 35
-  },
-  root: {
-    height: 35,
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    borderRight: "1px solid #ccc",
-    borderLeft: "1px solid #ccc"
-  },
-  callout: {
-    minWidth: 150
-  }
 };

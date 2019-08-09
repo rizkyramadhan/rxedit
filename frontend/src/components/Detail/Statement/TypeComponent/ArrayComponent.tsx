@@ -1,10 +1,7 @@
 import { toJS } from "mobx";
 import { observer, useObservable } from "mobx-react-lite";
 import React, { useEffect } from "react";
-import VariableComponent, {
-  newValueByType,
-  getType
-} from "../VariableComponent";
+import VariableComponent, { newValueByType, getType } from "../Variable";
 
 export default observer(({ value, setValue, depth }: any) => {
   const meta = useObservable({

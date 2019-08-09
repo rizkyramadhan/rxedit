@@ -3,7 +3,6 @@ import {
   CommandBarButton,
   Dropdown,
   DropdownMenuItemType,
-  IButtonStyles,
   Icon,
   IconButton,
   IDropdownOption,
@@ -12,17 +11,17 @@ import {
   TextField
 } from "office-ui-fabric-react";
 import React from "react";
+import { statementType } from "../Detail";
 import ArrayComponent from "./TypeComponent/ArrayComponent";
 import BooleanComponent from "./TypeComponent/BooleanComponent";
+import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
 import FunctionComponent from "./TypeComponent/FunctionComponent";
+import NullComponent from "./TypeComponent/NullComponent";
 import NumberComponent from "./TypeComponent/NumberComponent";
 import ObjectComponent from "./TypeComponent/ObjectComponent";
-import StringComponent from "./TypeComponent/StringComponent";
-import NullComponent from "./TypeComponent/NullComponent";
-import UndefinedComponent from "./TypeComponent/UndefinedComponent";
-import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
 import StatementComponent from "./TypeComponent/StatementComponent";
-import { statementType } from "../Detail";
+import StringComponent from "./TypeComponent/StringComponent";
+import UndefinedComponent from "./TypeComponent/UndefinedComponent";
 
 export const optionsDataType: IDropdownOption[] = [
   { key: "array", text: "Array" },

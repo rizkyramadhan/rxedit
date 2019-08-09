@@ -1,9 +1,6 @@
 import { toJS } from "mobx";
 import React, { useEffect } from "react";
-import VariableComponent, {
-  newValueByType,
-  getType
-} from "../VariableComponent";
+import VariableComponent, { newValueByType, getType } from "../Variable";
 import { observer, useObservable } from "mobx-react-lite";
 
 export default observer(({ value, setValue, depth }: any) => {
