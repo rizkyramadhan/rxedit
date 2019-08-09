@@ -1,12 +1,21 @@
 import _ from "lodash";
 import { observer, useObservable } from "mobx-react-lite";
-import { IconButton, Label } from "office-ui-fabric-react";
-import React, { useEffect, useState } from "react";
+import { IconButton, IContextualMenuItem, Label } from "office-ui-fabric-react";
+import React, { useEffect } from "react";
 import SplitPane from "react-split-pane";
 import { Api } from "../../api/Api";
-import VariableComponent, {
-  detailAttrStyle
-} from "./Variable/VariableComponent";
+import FunctionCall from "./Statement/FunctionCall";
+import Variable, {
+  detailAttrStyle,
+  newValueByType
+} from "./Statement/Variable";
+
+export const statementType: IContextualMenuItem[] = [
+  { key: "variable", text: "Variable" },
+  { key: "ifelse", text: "If-Else" },
+  { key: "for", text: "For" },
+  { key: "functionCall", text: "Function Call" }
+];
 
 const recurseFind = (array: any[], find: string) => {
   let found = undefined;
@@ -32,12 +41,8 @@ const Message = ({ text }: any) => (
 export default observer(({ data }: any) => {
   const source = useObservable({
     import: [] as any,
-    default: {} as any,
-    variable: [] as any
+    statements: [] as any
   });
-  const setVariable = (value: any) => {
-    source.variable = value;
-  };
   const file: any = recurseFind(data.dir, data.selected);
   useEffect(loadStructure.bind(source, file), [file]);
 
@@ -58,7 +63,7 @@ export default observer(({ data }: any) => {
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
         <div
           style={{
-            padding: "6px 0px 5px 15px",
+            padding: "0px 0px 0px 15px",
             borderBottom: "1px solid #ccc",
             display: "flex",
             alignItems: "center",
@@ -85,7 +90,7 @@ export default observer(({ data }: any) => {
           >
             <Label
               style={detailAttrStyle}
-              onClick={() => console.log(source.variable)}
+              onClick={() => console.log(source.statements)}
             >
               {source.import.length} Imports
             </Label>
@@ -98,15 +103,26 @@ export default observer(({ data }: any) => {
                   height: 27
                 }
               }}
-              onClick={() => {
-                let items = source.variable;
-                items.push({
-                  name: "string",
-                  type: "const",
-                  dataType: "string",
-                  value: null as any
-                });
-                setVariable(items);
+              menuProps={{
+                items: statementType,
+                onItemClick: (_e: any, val: any) => {
+                  let name = val.key === "functionCall" ? "" : `New${val.text}`;
+                  let type = val.key === "variable" ? "string" : val.key;
+                  source.statements.push({
+                    type: val.key,
+                    state: {
+                      name: name,
+                      declaration: "const",
+                      type: type,
+                      value: ""
+                    }
+                  });
+                }
+              }}
+              menuIconProps={{
+                style: {
+                  display: "none"
+                }
               }}
             />
           </div>
@@ -121,15 +137,59 @@ export default observer(({ data }: any) => {
           }}
         >
           <div>
-            {source.variable.map((item: any, idx: number) => {
+            {source.statements.map((item: any, idx: number) => {
               return (
-                <VariableComponent
+                <div
                   key={idx}
-                  index={idx}
-                  data={item}
-                  props={source.variable}
-                  setProps={setVariable}
-                />
+                  style={{
+                    borderBottom: "1px solid #ecebeb"
+                  }}
+                >
+                  {
+                    ({
+                      variable: (
+                        <Variable
+                          depth={0}
+                          name={item.state.name}
+                          declaration={item.state.declaration}
+                          type={item.state.type}
+                          value={item.state.value}
+                          set={(kind: string, value: any) => {
+                            source.statements[idx].state[kind] = value;
+                            if (kind === "type") {
+                              source.statements[
+                                idx
+                              ].state.value = newValueByType(value);
+                            }
+                          }}
+                          unset={() => {
+                            source.statements.splice(idx, 1);
+                          }}
+                        />
+                      ),
+                      functionCall: (
+                        <FunctionCall
+                          depth={0}
+                          name={item.state.name}
+                          declaration={item.state.declaration}
+                          type={item.state.type}
+                          value={item.state.value}
+                          set={(kind: string, value: any) => {
+                            source.statements[idx].state[kind] = value;
+                            if (kind === "type") {
+                              source.statements[
+                                idx
+                              ].state.value = newValueByType(value);
+                            }
+                          }}
+                          unset={() => {
+                            source.statements.splice(idx, 1);
+                          }}
+                        />
+                      )
+                    } as any)[item.type]
+                  }
+                </div>
               );
             })}
           </div>
