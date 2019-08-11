@@ -163,7 +163,7 @@ test('Add Function', async() => {
       name: "newFun",
         params: [{name: "sing", type:"Any"}],
         returnType: "Any",
-        statements:"Halooo"
+        statements:["let a = 1","a++"]
   })
   expect(res.data).toEqual('ok');
 })
@@ -175,7 +175,7 @@ test('Edit Function', async() => {
       newname:"newerFun",
         params: [{name: "song", type:"Any"}],
         returnType: "String",
-        statements:"Halowww"
+        statements:["let a = 1","++a"]
   })
   expect(res.data).toEqual('ok');
 })

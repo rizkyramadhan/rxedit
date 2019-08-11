@@ -26,13 +26,16 @@ class functionModel {
   name : String
   return : String
   params: Array<paramsModel>
-  body: any
+  statements: any
   export: any
 };
 
 class paramsModel{
   name : String
   type: String
+}
+class statmentsModel{
+  statement : String
 }
 
 class callParamsModel{
@@ -100,11 +103,18 @@ app.post('/source', (req: any, res: any) => {
           )
           j++;
         }
+        let statmen : Array<statmentsModel>=[]
+        j=0
+        while(j<(state[i] as FunctionDeclaration).getStatements().length){
+          statmen.push({"statement" : (state[i] as FunctionDeclaration).getStatements()[j].getText()});
+          j++
+        }
+
 
         func.push({"name":state[i].getSymbol().getEscapedName(),
           "return":(state[i] as FunctionDeclaration).getReturnType().getText(),
           "params":paramss,
-          "body" : (state[i] as FunctionDeclaration).getBody().getText(),
+          "statements" : statmen,
           "export":(state[i] as FunctionDeclaration).isExported()
         })
         //console.log((state[i] as FunctionDeclaration).getParameter())
@@ -410,3 +420,13 @@ app.post('/call-function',(req:any, res:any)=>{
   project.saveSync();
   res.send('ok');
 })
+
+// app.post('/del-call-function',(req:any, res:any)=>{
+//   const path = req.body.path.replace('./', absPath + '/');
+//   const sf = project.getSourceFile(path);
+//   if(sf){
+//       // sf.getStatement()
+//   }
+//   project.saveSync();
+//   res.send('ok');
+// })
