@@ -135,7 +135,7 @@ export default observer(
               styles={typeDropdownStyles}
               defaultSelectedKey={declaration}
               options={
-                ["statement", "function"].indexOf(type) > -1
+                ["statement", "function"].indexOf(type) >= -1
                   ? [
                       ...optionsDeclaration,
                       {
@@ -327,7 +327,18 @@ export default observer(
                           borderRight: "1px solid #ccc"
                         }}
                         onClick={() => {
-                          set("value", [...value, ""]);
+                          set("value", {
+                            ...value,
+                            "": {
+                              type: "variable",
+                              state: {
+                                name: "NewVariable",
+                                declaration: "const",
+                                type: "string",
+                                value: ""
+                              }
+                            }
+                          });
                         }}
                       />
                     ),
@@ -344,18 +355,18 @@ export default observer(
                         menuProps={{
                           items: statementType,
                           onItemClick: (_e: any, val: any) => {
-                            set("value", [
+                            set("value", {
                               ...value,
-                              {
+                              "": {
                                 type: val.key,
                                 state: {
-                                  name: `New${val.text}`,
+                                  name: "NewVariable",
                                   declaration: "const",
-                                  type: "object",
-                                  value: { "": "" }
+                                  type: "string",
+                                  value: ""
                                 }
                               }
-                            ]);
+                            });
                           }
                         }}
                         menuIconProps={{
@@ -536,8 +547,6 @@ const dataTypeDropdownStyles: Partial<IDropdownStyles> = {
     height: 27,
     flexDirection: "column",
     justifyContent: "flex-end"
-    // borderRight: "1px solid #ccc",
-    // borderLeft: "1px solid #ccc"
   },
   callout: {
     minWidth: 150
