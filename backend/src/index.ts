@@ -20,6 +20,7 @@ class variableModel {
   type: String
   value: any
   export: any
+  index: any
 };
 
 class functionModel {
@@ -28,6 +29,7 @@ class functionModel {
   params: Array<paramsModel>
   statements: any
   export: any
+  index: any
 };
 
 class paramsModel{
@@ -45,6 +47,7 @@ class callParamsModel{
 class callFunc{
   name : String
   params: Array<callParamsModel>
+  index: any
 }
 
 app.use(express.urlencoded({ extended: true }));
@@ -81,13 +84,14 @@ app.post('/source', (req: any, res: any) => {
     let i: number = 0;
     while (i < state.length) {
       statmen.push(state[i].getText())
-      console.log(state[i].getKindName())
+      console.log(state[i].getKindName()+" || "+state[i].getChildIndex())
+      
       if(state[i].getKindName()=="VariableStatement"){
-        
         vard.push({"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
         ,"type":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getType().getText()
         ,"value":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getStructure().initializer,
         "export":(state[i] as VariableStatement).isExported()
+        ,"index" : (state[i] as VariableStatement).getChildIndex()
       })
       } else if(state[i].getKindName()=="FunctionDeclaration"){
         let paramss: Array<paramsModel>=[]
@@ -116,6 +120,7 @@ app.post('/source', (req: any, res: any) => {
           "params":paramss,
           "statements" : statmen,
           "export":(state[i] as FunctionDeclaration).isExported()
+          ,"index" : (state[i] as FunctionDeclaration).getChildIndex()
         })
         //console.log((state[i] as FunctionDeclaration).getParameter())
       }else if (state[i].getKindName()=="ExpressionStatement"){
@@ -134,7 +139,10 @@ app.post('/source', (req: any, res: any) => {
         for (const identifier of state[i].getDescendantsOfKind(SyntaxKind.Identifier)) {
           console.log(identifier.getText())
           callFunc.push({"name": identifier.getText(),
-        "params":paramss})
+        "params":paramss
+        ,"index" : (state[i]).getChildIndex()
+        
+      })
         }
       }
     
@@ -421,12 +429,33 @@ app.post('/call-function',(req:any, res:any)=>{
   res.send('ok');
 })
 
-// app.post('/del-call-function',(req:any, res:any)=>{
-//   const path = req.body.path.replace('./', absPath + '/');
-//   const sf = project.getSourceFile(path);
-//   if(sf){
-//       // sf.getStatement()
-//   }
-//   project.saveSync();
-//   res.send('ok');
-// })
+app.post('/del-statement',(req:any, res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    sf.removeStatement(req.body.index)
+  }
+  project.saveSync();
+  res.send('ok');
+})
+
+app.post('/add-child-statement',(req:any,res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    sf.insertStatements(req.body.index, req.body.statement);
+  }
+  project.saveSync();
+  res.send('ok');
+})
+
+
+app.post('/add-statement',(req:any,res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    sf.addStatements(req.body.statement);
+  }
+  project.saveSync();
+  res.send('ok');
+})
