@@ -34,6 +34,29 @@ const recurseFind = (array: any[], find: string) => {
   return found;
 };
 
+export const addStatement = (val: any) => {
+  let name =
+    ["functionCall", "ifelse", "looping"].indexOf(val.key) > -1
+      ? ""
+      : `New${val.text}`;
+  let type = "string";
+  if (["ifelse", "functionCall", "looping"].indexOf(val.key) > -1)
+    type = "array";
+  let declaration = "const";
+  if (val.key === "ifelse") declaration = "if";
+  else if (val.key === "looping") declaration = "for";
+  let value: any = newValueByType(type);
+  return {
+    type: val.key,
+    state: {
+      name: name,
+      declaration: declaration,
+      type: type,
+      value: value
+    }
+  };
+};
+
 const Message = ({ text }: any) => (
   <div style={{ textAlign: "center", padding: 100, color: "#ccc" }}>
     &mdash; {text} &mdash;
@@ -108,38 +131,7 @@ export default observer(({ data }: any) => {
               menuProps={{
                 items: statementType,
                 onItemClick: (_e: any, val: any) => {
-                  let name =
-                    ["functionCall", "ifelse"].indexOf(val.key) > -1
-                      ? ""
-                      : `New${val.text}`;
-                  let type = "string";
-                  if (["ifelse", "functionCall"].indexOf(val.key))
-                    type = "object";
-                  let declaration = "const";
-                  if (val.key === "ifelse") declaration = "if";
-                  else if (val.key === "looping") declaration = "for";
-                  let value: any = newValueByType(type);
-                  if (type === "object")
-                    value = {
-                      "": {
-                        type: "variable",
-                        state: {
-                          name: "NewVariable",
-                          declaration: "const",
-                          type: "string",
-                          value: ""
-                        }
-                      }
-                    };
-                  source.statements.push({
-                    type: val.key,
-                    state: {
-                      name: name,
-                      declaration: declaration,
-                      type: type,
-                      value: value
-                    }
-                  });
+                  source.statements.push(addStatement(val));
                 }
               }}
               menuIconProps={{

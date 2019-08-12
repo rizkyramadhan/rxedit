@@ -187,7 +187,9 @@ export default observer(
                   }
                 }}
                 borderless
-                placeholder={type === "functionCall" ? "<Argument>" : "<Empty>"}
+                placeholder={
+                  type === "functionCall" ? "<FunctionName>" : "<Empty>"
+                }
                 iconProps={{ iconName: "EditStyle" }}
               />
             </div>
@@ -204,10 +206,8 @@ export default observer(
               {type !== "statement" && (
                 <CommandBarButton
                   text={
-                    !!name
-                      ? name
-                      : type === "functionCall"
-                      ? "<Argument>"
+                    meta.tempEditName && type === "functionCall"
+                      ? "<FunctionName>"
                       : "<Empty>"
                   }
                   onClick={() => {
@@ -245,7 +245,7 @@ export default observer(
                   options={optionsDataType}
                   styles={dataTypeDropdownStyles}
                   defaultSelectedKey={type}
-                  onChanged={(val: any) => {
+                  onChange={(_e: any, val: any) => {
                     set("type", val.key);
                     if (val.key === "functionCall") set("name", "");
                     if (val.key === "object")
@@ -327,9 +327,9 @@ export default observer(
                           borderRight: "1px solid #ccc"
                         }}
                         onClick={() => {
-                          set("value", {
+                          set("value", [
                             ...value,
-                            "": {
+                            {
                               type: "variable",
                               state: {
                                 name: "NewVariable",
@@ -338,7 +338,7 @@ export default observer(
                                 value: ""
                               }
                             }
-                          });
+                          ]);
                         }}
                       />
                     ),

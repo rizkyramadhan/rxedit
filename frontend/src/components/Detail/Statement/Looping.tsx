@@ -10,8 +10,8 @@ import {
   TextField
 } from "office-ui-fabric-react";
 import React from "react";
-import { statementType } from "../Detail";
-import ObjectComponent from "./TypeComponent/ObjectComponent";
+import { addStatement, statementType } from "../Detail";
+import LoopingComponent from "./TypeComponent/LoopingComponent";
 
 interface VariableComponentProps {
   name: string;
@@ -27,7 +27,7 @@ interface VariableComponentProps {
   unset: () => void;
 }
 
-export default observer(
+const Looping = observer(
   ({
     name,
     value,
@@ -43,9 +43,10 @@ export default observer(
   }: VariableComponentProps) => {
     const meta = useObservable({
       editName,
-      tempEditName: name
+      tempEditName: name,
+      expanded: [] as number[]
     });
-    const valueKeys = Object.keys(value);
+    console.log(value);
     return (
       <div
         style={{
@@ -131,7 +132,7 @@ export default observer(
             >
               {type !== "statement" && (
                 <CommandBarButton
-                  text={!!name ? name : "<Condition>"}
+                  text={meta.tempEditName || "<Condition>"}
                   onClick={() => {
                     if (isNameEditable) {
                       meta.tempEditName = name;
@@ -175,18 +176,7 @@ export default observer(
                   menuProps={{
                     items: statementType,
                     onItemClick: (_e: any, val: any) => {
-                      set("value", {
-                        ...value,
-                        "": {
-                          type: "variable",
-                          state: {
-                            name: "NewVariable",
-                            declaration: "const",
-                            type: "string",
-                            value: ""
-                          }
-                        }
-                      });
+                      set("value", [...value, addStatement(val)]);
                     }
                   }}
                   menuIconProps={{
@@ -234,30 +224,13 @@ export default observer(
                   right: 0
                 }}
               >
-                {valueKeys.length === 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                      height: "100%",
-                      fontSize: 12,
-                      color: "#333"
-                    }}
-                  >
-                    &mdash; Argument is empty &mdash;
-                  </div>
-                )}
-                {valueKeys.length > 0 && (
-                  <ObjectComponent
-                    value={value}
-                    depth={depth + 1}
-                    setValue={(newval: any) => {
-                      set("value", newval);
-                    }}
-                  />
-                )}
+                <LoopingComponent
+                  value={value}
+                  depth={depth + 1}
+                  setValue={(newval: any) => {
+                    set("value", newval);
+                  }}
+                />
               </div>
             </div>
           )}
@@ -341,3 +314,5 @@ const typeRenderOption = (option: IDropdownOption): JSX.Element => {
     </div>
   );
 };
+
+export default Looping;

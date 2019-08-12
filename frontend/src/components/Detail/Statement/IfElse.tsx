@@ -10,8 +10,8 @@ import {
   TextField
 } from "office-ui-fabric-react";
 import React from "react";
-import { statementType } from "../Detail";
-import ObjectComponent from "./TypeComponent/ObjectComponent";
+import { statementType, addStatement } from "../Detail";
+import IfElseComponent from "./TypeComponent/IfElseComponent";
 
 interface VariableComponentProps {
   name: string;
@@ -53,7 +53,7 @@ export default observer(
       editName,
       tempEditName: name
     });
-    const valueKeys = Object.keys(value);
+
     return (
       <div
         style={{
@@ -182,18 +182,7 @@ export default observer(
                   menuProps={{
                     items: statementType,
                     onItemClick: (_e: any, val: any) => {
-                      set("value", {
-                        ...value,
-                        "": {
-                          type: "variable",
-                          state: {
-                            name: "NewVariable",
-                            declaration: "const",
-                            type: "string",
-                            value: ""
-                          }
-                        }
-                      });
+                      set("value", [...value, addStatement(val)]);
                     }
                   }}
                   menuIconProps={{
@@ -241,30 +230,13 @@ export default observer(
                   right: 0
                 }}
               >
-                {valueKeys.length === 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                      height: "100%",
-                      fontSize: 12,
-                      color: "#333"
-                    }}
-                  >
-                    &mdash; Argument is empty &mdash;
-                  </div>
-                )}
-                {valueKeys.length > 0 && (
-                  <ObjectComponent
-                    value={value}
-                    depth={depth + 1}
-                    setValue={(newval: any) => {
-                      set("value", newval);
-                    }}
-                  />
-                )}
+                <IfElseComponent
+                  value={value}
+                  depth={depth + 1}
+                  setValue={(newval: any) => {
+                    set("value", newval);
+                  }}
+                />
               </div>
             </div>
           )}
