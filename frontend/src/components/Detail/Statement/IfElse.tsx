@@ -10,8 +10,8 @@ import {
   TextField
 } from "office-ui-fabric-react";
 import React from "react";
-import { statementType, addStatement } from "../Detail";
-import IfElseComponent from "./TypeComponent/IfElseComponent";
+import { addStatement, statementType } from "../Detail";
+import StatementsComponent from "./TypeComponent/StatementsComponent";
 
 interface VariableComponentProps {
   name: string;
@@ -230,7 +230,7 @@ export default observer(
                   right: 0
                 }}
               >
-                <IfElseComponent
+                <StatementsComponent
                   value={value}
                   depth={depth + 1}
                   setValue={(newval: any) => {

@@ -4,19 +4,15 @@ import { IconButton, IContextualMenuItem, Label } from "office-ui-fabric-react";
 import React, { useEffect } from "react";
 import SplitPane from "react-split-pane";
 import { Api } from "../../api/Api";
-import FunctionCall from "./Statement/FunctionCall";
-import Variable, {
-  detailAttrStyle,
-  newValueByType
-} from "./Statement/Variable";
-import IfElse from "./Statement/IfElse";
-import Looping from "./Statement/Looping";
+import StatementsComponent from "./Statement/TypeComponent/StatementsComponent";
+import { detailAttrStyle, newValueByType } from "./Statement/Variable";
 
 export const statementType: IContextualMenuItem[] = [
-  { key: "variable", text: "Variable" },
-  { key: "ifelse", text: "If-Else" },
-  { key: "looping", text: "Looping" },
-  { key: "functionCall", text: "Function Call" }
+  { key: "variable", text: "variable" },
+  { key: "ifelse", text: "if-else" },
+  { key: "switch", text: "switch-case" },
+  { key: "looping", text: "looping" },
+  { key: "functionCall", text: "function call" }
 ];
 
 const recurseFind = (array: any[], find: string) => {
@@ -36,15 +32,16 @@ const recurseFind = (array: any[], find: string) => {
 
 export const addStatement = (val: any) => {
   let name =
-    ["functionCall", "ifelse", "looping"].indexOf(val.key) > -1
+    ["functionCall", "ifelse", "looping", "switch"].indexOf(val.key) > -1
       ? ""
       : `New${val.text}`;
   let type = "string";
-  if (["ifelse", "functionCall", "looping"].indexOf(val.key) > -1)
+  if (["ifelse", "functionCall", "looping", "switch"].indexOf(val.key) > -1)
     type = "array";
   let declaration = "const";
   if (val.key === "ifelse") declaration = "if";
   else if (val.key === "looping") declaration = "for";
+  else if (val.key === "switch") declaration = "switch";
   let value: any = newValueByType(type);
   return {
     type: val.key,
@@ -152,102 +149,19 @@ export default observer(({ data }: any) => {
           }}
         >
           <div>
-            {source.statements.map((item: any, idx: number) => {
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    borderBottom: "1px solid #ecebeb"
-                  }}
-                >
-                  {
-                    ({
-                      variable: (
-                        <Variable
-                          depth={0}
-                          name={item.state.name}
-                          declaration={item.state.declaration}
-                          type={item.state.type}
-                          value={item.state.value}
-                          set={(kind: string, value: any) => {
-                            source.statements[idx].state[kind] = value;
-                            if (kind === "type") {
-                              source.statements[
-                                idx
-                              ].state.value = newValueByType(value);
-                            }
-                          }}
-                          unset={() => {
-                            source.statements.splice(idx, 1);
-                          }}
-                        />
-                      ),
-                      functionCall: (
-                        <FunctionCall
-                          depth={0}
-                          name={item.state.name}
-                          declaration={item.state.declaration}
-                          type={item.state.type}
-                          value={item.state.value}
-                          set={(kind: string, value: any) => {
-                            source.statements[idx].state[kind] = value;
-                            if (kind === "type") {
-                              source.statements[
-                                idx
-                              ].state.value = newValueByType(value);
-                            }
-                          }}
-                          unset={() => {
-                            source.statements.splice(idx, 1);
-                          }}
-                        />
-                      ),
-                      ifelse: (
-                        <IfElse
-                          depth={0}
-                          name={item.state.name}
-                          declaration={item.state.declaration}
-                          type={item.state.type}
-                          value={item.state.value}
-                          isFirstCondition={idx === 0}
-                          set={(kind: string, value: any) => {
-                            source.statements[idx].state[kind] = value;
-                            if (kind === "type") {
-                              source.statements[
-                                idx
-                              ].state.value = newValueByType(value);
-                            }
-                          }}
-                          unset={() => {
-                            source.statements.splice(idx, 1);
-                          }}
-                        />
-                      ),
-                      looping: (
-                        <Looping
-                          depth={0}
-                          name={item.state.name}
-                          declaration={item.state.declaration}
-                          type={item.state.type}
-                          value={item.state.value}
-                          set={(kind: string, value: any) => {
-                            source.statements[idx].state[kind] = value;
-                            if (kind === "type") {
-                              source.statements[
-                                idx
-                              ].state.value = newValueByType(value);
-                            }
-                          }}
-                          unset={() => {
-                            source.statements.splice(idx, 1);
-                          }}
-                        />
-                      )
-                    } as any)[item.type]
-                  }
-                </div>
-              );
-            })}
+            <div
+              style={{
+                borderBottom: "1px solid #ecebeb"
+              }}
+            >
+              <StatementsComponent
+                value={source.statements}
+                depth={0}
+                setValue={(newval: any) => {
+                  source.statements = newval;
+                }}
+              />
+            </div>
           </div>
           <div />
         </SplitPane>
