@@ -12,6 +12,7 @@ import {
 import React from "react";
 import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
 import { optionsDeclaration } from "./Variable";
+import { addStatement, statementType } from "../Detail";
 
 interface VariableComponentProps {
   name: string;
@@ -123,7 +124,7 @@ export default observer(
                   }
                 }}
                 borderless
-                placeholder="<Function Name>"
+                placeholder="<FunctionName>"
                 iconProps={{ iconName: "EditStyle" }}
               />
             </div>
@@ -139,7 +140,7 @@ export default observer(
             >
               {type !== "statement" && (
                 <CommandBarButton
-                  text={meta.tempEditName || "<Function Name>"}
+                  text={meta.tempEditName || "<FunctionName>"}
                   onClick={() => {
                     if (isNameEditable) {
                       meta.tempEditName = name;
@@ -173,26 +174,23 @@ export default observer(
               >
                 <IconButton
                   iconProps={{ iconName: "CircleAddition" }}
-                  title="Add Item"
-                  ariaLabel="Add Item"
-                  style={{
-                    height: 27,
-                    borderRadius: 0,
-                    borderRight: "1px solid #ccc"
+                  title="Add Variable"
+                  ariaLabel="Add Variable"
+                  styles={{
+                    root: {
+                      height: 27
+                    }
                   }}
-                  onClick={() => {
-                    set("value", {
-                      ...value,
-                      "": {
-                        type: "variable",
-                        state: {
-                          name: "NewVariable",
-                          declaration: "const",
-                          type: "string",
-                          value: ""
-                        }
-                      }
-                    });
+                  menuProps={{
+                    items: statementType,
+                    onItemClick: (_e: any, val: any) => {
+                      set("value", [...value, addStatement(val)]);
+                    }
+                  }}
+                  menuIconProps={{
+                    style: {
+                      display: "none"
+                    }
                   }}
                 />
                 <IconButton
