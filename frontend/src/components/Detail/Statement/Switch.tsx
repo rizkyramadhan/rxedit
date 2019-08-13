@@ -23,28 +23,35 @@ interface VariableComponentProps {
   editName?: boolean;
   depth: 0;
   isNameEditable?: boolean;
+  isFirstCondition?: boolean;
   set: (kind: string, value: any) => void;
   unset: () => void;
 }
 
-const Looping = observer(
+const optionsCond = [
+  { key: "switch", text: "switch" },
+  { key: "case", text: "case" },
+  { key: "default", text: "default" }
+];
+
+export default observer(
   ({
     name,
     value,
     type = "object",
-    declaration = "for",
+    declaration = "if",
     useDeclaration = true,
     set,
     unset,
     depth = 0,
     hideValue = false,
     editName = false,
-    isNameEditable = true
+    isNameEditable = true,
+    isFirstCondition = false
   }: VariableComponentProps) => {
     const meta = useObservable({
       editName,
-      tempEditName: name,
-      expanded: [] as number[]
+      tempEditName: name
     });
 
     return (
@@ -73,12 +80,11 @@ const Looping = observer(
             onRenderCaretDown={() => <div />}
             styles={typeDropdownStyles}
             defaultSelectedKey={declaration}
-            options={[
-              { key: "for", text: "for" },
-              { key: "foreach", text: "foreach" },
-              { key: "while", text: "while" },
-              { key: "dowhile", text: "do while" }
-            ]}
+            options={
+              !isFirstCondition
+                ? [...optionsCond]
+                : [...optionsCond.slice(0, 1)]
+            }
             onChange={(_e: any, val: any) => {
               set("declaration", val.key);
             }}
@@ -116,7 +122,7 @@ const Looping = observer(
                   }
                 }}
                 borderless
-                placeholder="<Condition>"
+                placeholder={declaration === "default" ? "" : "<Condition>"}
                 iconProps={{ iconName: "EditStyle" }}
               />
             </div>
@@ -130,9 +136,13 @@ const Looping = observer(
                 backgroundColor: "#fafafa"
               }}
             >
-              {type !== "statement" && (
+              {declaration !== "default" && (
                 <CommandBarButton
-                  text={meta.tempEditName || "<Condition>"}
+                  text={
+                    meta.tempEditName || declaration === "default"
+                      ? ""
+                      : "<Condition>"
+                  }
                   onClick={() => {
                     if (isNameEditable) {
                       meta.tempEditName = name;
@@ -314,5 +324,3 @@ const typeRenderOption = (option: IDropdownOption): JSX.Element => {
     </div>
   );
 };
-
-export default Looping;

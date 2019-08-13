@@ -11,15 +11,14 @@ import {
   TextField
 } from "office-ui-fabric-react";
 import React from "react";
-import { statementType } from "../Detail";
+import { addStatement, statementType } from "../Detail";
 import ArrayComponent from "./TypeComponent/ArrayComponent";
 import BooleanComponent from "./TypeComponent/BooleanComponent";
-import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
-import FunctionComponent from "./TypeComponent/FunctionComponent";
 import NullComponent from "./TypeComponent/NullComponent";
 import NumberComponent from "./TypeComponent/NumberComponent";
 import ObjectComponent from "./TypeComponent/ObjectComponent";
 import StatementComponent from "./TypeComponent/StatementComponent";
+import StatementsComponent from "./TypeComponent/StatementsComponent";
 import StringComponent from "./TypeComponent/StringComponent";
 import UndefinedComponent from "./TypeComponent/UndefinedComponent";
 
@@ -206,7 +205,9 @@ export default observer(
               {type !== "statement" && (
                 <CommandBarButton
                   text={
-                    meta.tempEditName && type === "functionCall"
+                    meta.tempEditName
+                      ? meta.tempEditName
+                      : type === "functionCall"
                       ? "<FunctionName>"
                       : "<Empty>"
                   }
@@ -355,18 +356,7 @@ export default observer(
                         menuProps={{
                           items: statementType,
                           onItemClick: (_e: any, val: any) => {
-                            set("value", {
-                              ...value,
-                              "": {
-                                type: val.key,
-                                state: {
-                                  name: "NewVariable",
-                                  declaration: "const",
-                                  type: "string",
-                                  value: ""
-                                }
-                              }
-                            });
+                            set("value", [...value, addStatement(val)]);
                           }
                         }}
                         menuIconProps={{
@@ -420,7 +410,7 @@ export default observer(
                 {
                   ({
                     function: (
-                      <FunctionComponent
+                      <StatementsComponent
                         value={value}
                         depth={depth + 1}
                         setValue={(newval: any) => {
@@ -487,7 +477,7 @@ export default observer(
                       />
                     ),
                     functionCall: (
-                      <FunctionCallComponent
+                      <StatementsComponent
                         value={value}
                         depth={depth + 1}
                         setValue={(newval: any) => {

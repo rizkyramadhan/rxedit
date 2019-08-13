@@ -10,9 +10,9 @@ import {
   TextField
 } from "office-ui-fabric-react";
 import React from "react";
-import FunctionCallComponent from "./TypeComponent/FunctionCallComponent";
-import { optionsDeclaration } from "./Variable";
 import { addStatement, statementType } from "../Detail";
+import StatementsComponent from "./TypeComponent/StatementsComponent";
+import { optionsDeclaration } from "./Variable";
 
 interface VariableComponentProps {
   name: string;
@@ -231,7 +231,7 @@ export default observer(
                 right: 0
               }}
             >
-              <FunctionCallComponent
+              <StatementsComponent
                 value={value}
                 depth={depth + 1}
                 setValue={(newval: any) => {
