@@ -148,13 +148,13 @@ test('Set Variable Export', async() => {
   expect(res.data).toEqual('ok');
 })
 
-// test('delete Variable', async() => {
-//   const res = await axios.post(`${url}/del-var`,{
-//       path: newfile,
-//       name: 'newVar'
-//   })
-//   expect(res.data).toEqual('ok');
-// })
+test('delete Variable', async() => {
+  const res = await axios.post(`${url}/del-var`,{
+      path: newfile,
+      name: 'newVar'
+  })
+  expect(res.data).toEqual('ok');
+})
 
 // FUNCTION
 test('Add Function', async() => {
@@ -180,6 +180,8 @@ test('Edit Function', async() => {
   expect(res.data).toEqual('ok');
 })
 
+
+
 test('Set Function Export', async() => {
   const res = await axios.post(`${url}/set-func-export`,{
       path: newfile,
@@ -199,21 +201,109 @@ test('Call function', async() => {
   expect(res.data).toEqual('ok');
 })
 
-// test('Delete Function', async() => {
-//   const res = await axios.post(`${url}/del-function`,{
+// test('Del call function', async() => {
+//   const res = await axios.post(`${url}/del-call-function`,{
 //       path: newfile,
-//       name: "newerFun"
+//       function: "newerFun",
+//       params: "'haloo'"
+//   })
+//   expect(res.data).toEqual('ok');
+// })
+
+
+
+//STATEMENT
+test('Add Statement', async() => {
+  const res = await axios.post(`${url}/add-statement`,{
+      path: newfile,
+      statement: "const a = 'added statement'"
+  })
+  expect(res.data).toEqual('ok');
+})
+
+test('Insert Statement', async() => {
+  const res = await axios.post(`${url}/insert-statement`,{
+      path: newfile,
+      index:4,
+      statement: "const a :String = 'inserted statement'"
+  })
+  expect(res.data).toEqual('ok');
+})
+
+test('Delete Statement Function', async() => {
+  const res = await axios.post(`${url}/del-statement`,{
+      path: newfile,
+      index:4
+  })
+  expect(res.data).toEqual('ok');
+})
+
+//STATEMENT IN FUNCTION
+test('Add Statement Function', async() => {
+  const res = await axios.post(`${url}/add-statement-function`,{
+      path: newfile,
+      function: "newerFun",
+      statement: "const a = 'added statement'"
+  })
+  expect(res.data).toEqual('ok');
+})
+
+test('Insert Statement Function', async() => {
+  const res = await axios.post(`${url}/insert-statement-function`,{
+      path: newfile,
+      function: "newerFun",
+      index:0,
+      statement: "const a :String = 'inserted statement'"
+  })
+  expect(res.data).toEqual('ok');
+})
+
+test('Delete Statement Function', async() => {
+  const res = await axios.post(`${url}/del-statement-function`,{
+      path: newfile,
+      function: "newerFun",
+      index:0
+  })
+  expect(res.data).toEqual('ok');
+})
+
+
+// //STATEMENT IN DEFAULT (BELUM JADI)
+// test('Add Statement Default', async() => {
+//   const res = await axios.post(`${url}/add-statement-default`,{
+//       path: newfile,
+//       statement: "const a = 'added statement'"
+//   })
+//   expect(res.data).toEqual('ok');
+// })
+
+// test('Insert Statement Default', async() => {
+//   const res = await axios.post(`${url}/insert-statement-default`,{
+//       path: newfile,
+//       index:0,
+//       statement: "const a :String = 'inserted statement'"
 //   })
 //   expect(res.data).toEqual('ok');
 // })
 
 //DELETE
-// test('Delete newfile', async() => {
-//   const res = await axios.post(`${url}/del`,{
-//       path: newfile
-//   })
-//   expect(res.data).toEqual('ok');
-// })
+
+test('Delete Function', async() => {
+  const res = await axios.post(`${url}/del-function`,{
+      path: newfile,
+      name: "newerFun"
+  })
+  expect(res.data).toEqual('ok');
+})
+
+test('Delete newfile', async() => {
+  const res = await axios.post(`${url}/del`,{
+      path: newfile
+  })
+  expect(res.data).toEqual('ok');
+})
+
+
 
 test('Delete newdir', async() => {
   const res = await axios.post(`${url}/del`,{

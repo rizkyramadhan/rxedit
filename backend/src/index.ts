@@ -38,6 +38,7 @@ class paramsModel{
 }
 class statmentsModel{
   statement : String
+  index: any
 }
 
 class callParamsModel{
@@ -85,6 +86,7 @@ app.post('/source', (req: any, res: any) => {
     while (i < state.length) {
       statmen.push(state[i].getText())
       console.log(state[i].getKindName()+" || "+state[i].getChildIndex())
+
       
       if(state[i].getKindName()=="VariableStatement"){
         vard.push({"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
@@ -110,7 +112,8 @@ app.post('/source', (req: any, res: any) => {
         let statmen : Array<statmentsModel>=[]
         j=0
         while(j<(state[i] as FunctionDeclaration).getStatements().length){
-          statmen.push({"statement" : (state[i] as FunctionDeclaration).getStatements()[j].getText()});
+          statmen.push({"statement" : (state[i] as FunctionDeclaration).getStatements()[j].getText()
+        ,"index": (state[i] as FunctionDeclaration).getStatements()[j].getChildIndex()});
           j++
         }
 
@@ -439,7 +442,7 @@ app.post('/del-statement',(req:any, res:any)=>{
   res.send('ok');
 })
 
-app.post('/add-child-statement',(req:any,res:any)=>{
+app.post('/insert-statement',(req:any,res:any)=>{
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.getSourceFile(path);
   if(sf){
@@ -459,3 +462,69 @@ app.post('/add-statement',(req:any,res:any)=>{
   project.saveSync();
   res.send('ok');
 })
+
+app.post('/add-statement-function',(req:any,res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    sf.getFunction(req.body.function).addStatements(req.body.statement);
+  }
+  project.saveSync();
+  res.send('ok');
+})
+
+app.post('/insert-statement-function',(req:any,res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    sf.getFunction(req.body.function).insertStatements(req.body.index, req.body.statement);
+  }
+  project.saveSync();
+  res.send('ok');
+})
+
+app.post('/del-statement-function',(req:any, res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    sf.getFunction(req.body.function).removeStatement(req.body.index)
+  }
+  project.saveSync();
+  res.send('ok');
+})
+
+
+
+// app.post('/add-statement-default',(req:any,res:any)=>{
+//   const path = req.body.path.replace('./', absPath + '/');
+//   const sf = project.getSourceFile(path);
+//   if(sf){
+//     //(sf.getDefaultExportSymbol().getDeclarations() as FunctionDeclaration).addStatements("hlooo")
+//     console.log(sf.getDefaultExportSymbol().getMembers())
+    
+//     console.log(sf.getExportDeclarations()[1])
+//     console.log(sf.getExportDeclarations()[2])
+//   }
+//   project.saveSync();
+//   res.send('ok');
+// })
+
+// app.post('/insert-statement-default',(req:any,res:any)=>{
+//   const path = req.body.path.replace('./', absPath + '/');
+//   const sf = project.getSourceFile(path);
+//   if(sf){
+//     getDefaultComponent(sf).insertStatements(req.body.index, req.body.statement);
+//   }
+//   project.saveSync();
+//   res.send('ok');
+// })
+
+// app.post('/del-statement-default',(req:any, res:any)=>{
+//   const path = req.body.path.replace('./', absPath + '/');
+//   const sf = project.getSourceFile(path);
+//   if(sf){
+//     getDefaultComponent(sf).removeStatement(req.body.index)
+//   }
+//   project.saveSync();
+//   res.send('ok');
+// })
