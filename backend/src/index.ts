@@ -3,9 +3,11 @@ import express from 'express';
 import fs, { stat } from 'fs';
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import { Project, SourceFile, VariableDeclarationKind, ExportAssignment, FunctionDeclaration, VariableDeclaration, VariableStatement, VariableDeclarationList, SyntaxKind, ExpressionStatement } from 'ts-morph';
-import { getDefaultComponent, getImport } from './parser';
+import { Project, SourceFile, VariableDeclarationKind, ExportAssignment, FunctionDeclaration, VariableDeclaration, VariableStatement, VariableDeclarationList, SyntaxKind, ExpressionStatement, ImportDeclaration } from 'ts-morph';
+import { getDefaultComponent, getImport, parseTag } from './parser';
 import { variableDeclaration } from '@babel/types';
+import { statements } from '@babel/template';
+import { getNameOfDeclaration } from 'typescript';
 
 let rootPath = '../app/src/';
 let absPath = path.resolve(rootPath);
@@ -15,22 +17,7 @@ let project = new Project({
   tsConfigFilePath: rootPath + '../tsconfig.json'
 });
 
-class variableModel {
-  name : String
-  type: String
-  value: any
-  export: any
-  index: any
-};
 
-class functionModel {
-  name : String
-  return : String
-  params: Array<paramsModel>
-  statements: any
-  export: any
-  index: any
-};
 
 class paramsModel{
   name : String
@@ -49,6 +36,165 @@ class callFunc{
   name : String
   params: Array<callParamsModel>
   index: any
+}
+
+class statmentModel{
+  index:any
+  kind : any
+  name: any
+  value: any
+}
+
+class functionStatmentModel{
+  args : any
+  statements:Array<statmentModel>
+  returnType: any
+}
+
+class importModel{
+  index: any
+  default : any
+  named:Array<any>
+  from: any
+}
+
+function mFunction(state: Array<any>, i: number):any{
+  let paramss: Array<paramsModel>=[]
+  let j: number = 0;
+  while(j<(state[i] as FunctionDeclaration).getParameters().length){
+    paramss.push(
+    {
+        "name": (state[i] as FunctionDeclaration).getParameters()[j].getSymbol().getEscapedName(),
+        "type":(state[i] as FunctionDeclaration).getParameters()[j].getTypeNode().getText()
+    })
+    j++;
+  }
+  
+  let statmen : Array<statmentModel>=[]
+  j=0
+  console.log("LENGTH : "+(state[i] as FunctionDeclaration).getStatements().length)
+  while(j<(state[i] as FunctionDeclaration).getStatements().length){
+    console.log("INDEX : "+j)
+    console.log("STATE : "+(state[i] as FunctionDeclaration).getStatements()[j].getText())
+    if((state[i] as FunctionDeclaration).getStatements()[j].getKindName()=="VariableStatement"){
+      statmen.push(mVar((state[i] as FunctionDeclaration).getStatements(),j))
+    } else if((state[i] as FunctionDeclaration).getStatements()[j].getKindName()=="ExpressionStatement"){
+      statmen.push(mExpression((state[i] as FunctionDeclaration).getStatements(),j))
+    } else if((state[i] as FunctionDeclaration).getStatements()[j].getKindName()=="FunctionDeclaration"){
+      statmen.push(mFunction((state[i] as FunctionDeclaration).getStatements(),j))
+    }
+    j++
+  }
+  j=0
+  paramss=[]
+  while(j<(state[i] as FunctionDeclaration).getParameters().length){
+  paramss.push(
+    {
+      "name": (state[i] as FunctionDeclaration).getParameters()[j].getSymbolOrThrow().getEscapedName(),
+      "type":(state[i] as FunctionDeclaration).getParameters()[j].getTypeNode().getText()
+    })
+    j++
+  }
+  let statementFunction :Array<functionStatmentModel>=[]
+  statementFunction.push(
+    {
+      "args": paramss,
+      "statements": statmen,
+      "returnType":(state[i] as FunctionDeclaration).getReturnType().getText(),
+    })
+  
+        
+  let statements : statmentModel=
+    {
+      "index":(state[i] as FunctionDeclaration).getChildIndex(),
+      "kind":state[i].getKindName(),
+      "name":state[i].getSymbol().getEscapedName(),
+      "value" : statementFunction
+    }
+    return statements
+}
+function mVar(state: any, i :number):any{
+  let statements : statmentModel={
+    "index":(state[i] as VariableStatement).getChildIndex(),
+    "kind":(state[i] as VariableStatement).getDeclarationList().getKindName() 
+    ,"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
+    ,"value":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getStructure().initializer,
+  }
+  return statements
+}
+function mExpression(state: any, i :number): any{
+  let paramss: Array<callParamsModel>=[]
+  let j=0;
+  for (const callExpression of state[i].getDescendantsOfKind(SyntaxKind.CallExpression)) {
+    while (j<callExpression.getArguments().length){
+      paramss.push({"value": callExpression.getArguments()[j].getText()});
+      j++
+    }
+  }
+  for (const identifier of state[i].getDescendantsOfKind(SyntaxKind.Identifier)) {
+    let statements : statmentModel=
+      {
+        "index":(state[i]).getChildIndex(),
+        "kind": state[i].getKindName(),
+        "name": identifier.getText(),
+        "value" : (state[i]).getChildIndex()
+      }
+      return statements
+  }
+  
+}
+function mImport(state: Array<any>, i: number):any{
+  let namedImport:Array<string>=[]
+  let j=0
+  while(j<(state[i] as ImportDeclaration).getNamedImports().length){
+    namedImport.push((state[i] as ImportDeclaration).getNamedImports()[j].getName())
+    j++
+  }
+  let defaults : string = null
+  try{
+    defaults=(state[i] as ImportDeclaration).getDefaultImportOrThrow().getText()
+  }catch{
+    defaults=""
+  }
+
+
+  let statements : importModel={
+    "index":(state[i] as ImportDeclaration).getChildIndex(),
+    "default":defaults
+    ,"named":namedImport
+    ,"from":(state[i] as ImportDeclaration).getModuleSpecifierValue()
+  }
+  return statements
+
+}
+function mDefault(sf:any):any{
+  const expt = sf.getFirstChildByKind(SyntaxKind.ExportAssignment);
+  if (expt) {
+    let array: any = expt
+      .getFirstChildByKindOrThrow(SyntaxKind.ArrowFunction)
+      .getFirstChildByKindOrThrow(SyntaxKind.Block)
+      .getFirstChildByKindOrThrow(SyntaxKind.ReturnStatement);
+
+    try {
+      array = array.getFirstChildByKindOrThrow(
+        SyntaxKind.ParenthesizedExpression
+      );
+    } catch (e) {}
+
+    const expr = array.getExpression();
+    return {
+      index: expt.getChildIndex(),
+      wrapper: [],
+      props: [],
+      data: [],
+      effects: [],
+      render: parseTag(expr)
+    };
+  }
+  return null;
+}
+function mSelect(sf: any){
+  
 }
 
 app.use(express.urlencoded({ extended: true }));
@@ -77,91 +223,36 @@ app.post('/source', (req: any, res: any) => {
     const state = sf.getStatements()
     
     let statmen: Array<any>=[""]
-    let vard: Array<variableModel>=[]
-    let func: Array<functionModel>=[]
-    let callFunc: Array<callFunc>=[]
+    let statements:Array<statmentModel>=[]
+    let imports:Array<importModel>=[]
     statmen.pop();
     console.log()
+    ////////////////////////////////
     let i: number = 0;
     while (i < state.length) {
       statmen.push(state[i].getText())
       console.log(state[i].getKindName()+" || "+state[i].getChildIndex())
-
-      
       if(state[i].getKindName()=="VariableStatement"){
-        vard.push({"name":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getSymbol().getEscapedName()
-        ,"type":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getType().getText()
-        ,"value":(state[i] as VariableStatement).getDeclarationList().getDeclarations()[0].getStructure().initializer,
-        "export":(state[i] as VariableStatement).isExported()
-        ,"index" : (state[i] as VariableStatement).getChildIndex()
-      })
-      } else if(state[i].getKindName()=="FunctionDeclaration"){
-        let paramss: Array<paramsModel>=[]
-        let j: number = 0;
-        
-        
-        while(j<(state[i] as FunctionDeclaration).getParameters().length){
-          console.log((state[i] as FunctionDeclaration).getParameters()[j].getSymbol().getEscapedName())
-          console.log((state[i] as FunctionDeclaration).getParameters()[j].getTypeNode().getText())
-
-          paramss.push({"name": (state[i] as FunctionDeclaration).getParameters()[j].getSymbol().getEscapedName(),
-          "type":(state[i] as FunctionDeclaration).getParameters()[j].getTypeNode().getText()}
-          )
-          j++;
-        }
-        let statmen : Array<statmentsModel>=[]
-        j=0
-        while(j<(state[i] as FunctionDeclaration).getStatements().length){
-          statmen.push({"statement" : (state[i] as FunctionDeclaration).getStatements()[j].getText()
-        ,"index": (state[i] as FunctionDeclaration).getStatements()[j].getChildIndex()});
-          j++
-        }
-
-
-        func.push({"name":state[i].getSymbol().getEscapedName(),
-          "return":(state[i] as FunctionDeclaration).getReturnType().getText(),
-          "params":paramss,
-          "statements" : statmen,
-          "export":(state[i] as FunctionDeclaration).isExported()
-          ,"index" : (state[i] as FunctionDeclaration).getChildIndex()
-        })
-        //console.log((state[i] as FunctionDeclaration).getParameter())
+        statements.push(mVar(state,i))
+      }else if(state[i].getKindName()=="FunctionDeclaration"){
+        statements.push(mFunction(state,i))
       }else if (state[i].getKindName()=="ExpressionStatement"){
-        //console.log((state[i] as ExpressionStatement).getExpression()
-        let paramss: Array<callParamsModel>=[]
-        let j=0;
-        for (const callExpression of state[i].getDescendantsOfKind(SyntaxKind.CallExpression)) {
-          while (j<callExpression.getArguments().length){
-            paramss.push({"value": callExpression.getArguments()[j].getText()});
-            j++
-          }
-          console.log(callExpression.getArguments()[0].getText())
-          
-        }
-
-        for (const identifier of state[i].getDescendantsOfKind(SyntaxKind.Identifier)) {
-          console.log(identifier.getText())
-          callFunc.push({"name": identifier.getText(),
-        "params":paramss
-        ,"index" : (state[i]).getChildIndex()
-        
-      })
-        }
+        statements.push(mExpression(state,i))
+      }else if (state[i].getKindName()=="ImportDeclaration"){
+        imports.push(mImport(state,i))
       }
-    
+
       i++;
     }
-    
+    //////////////
     
     sf.saveSync();
     project.saveSync();
     res.send(
       JSON.stringify({
-        import: getImport(sf),
-         variable:vard,
-         function:func,
-         calledFunction:callFunc,
-        default: getDefaultComponent(sf)
+        import: imports,
+         statements: statements,
+        default: mDefault(sf)
       })
     );
   }
@@ -495,19 +586,19 @@ app.post('/del-statement-function',(req:any, res:any)=>{
 
 
 
-// app.post('/add-statement-default',(req:any,res:any)=>{
-//   const path = req.body.path.replace('./', absPath + '/');
-//   const sf = project.getSourceFile(path);
-//   if(sf){
-//     //(sf.getDefaultExportSymbol().getDeclarations() as FunctionDeclaration).addStatements("hlooo")
-//     console.log(sf.getDefaultExportSymbol().getMembers())
+app.post('/add-statement-default',(req:any,res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    //(sf.getDefaultExportSymbol().getDeclarations() as FunctionDeclaration).addStatements("hlooo")
+    console.log(sf.getDefaultExportSymbol().getMembers())
     
-//     console.log(sf.getExportDeclarations()[1])
-//     console.log(sf.getExportDeclarations()[2])
-//   }
-//   project.saveSync();
-//   res.send('ok');
-// })
+    console.log(sf.getExportDeclarations()[1])
+    console.log(sf.getExportDeclarations()[2])
+  }
+  project.saveSync();
+  res.send('ok');
+})
 
 // app.post('/insert-statement-default',(req:any,res:any)=>{
 //   const path = req.body.path.replace('./', absPath + '/');
