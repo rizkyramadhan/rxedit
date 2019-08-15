@@ -3,7 +3,7 @@ import express from 'express';
 import fs, { stat } from 'fs';
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import { Project, SourceFile, VariableDeclarationKind, ExportAssignment, FunctionDeclaration, VariableDeclaration, VariableStatement, VariableDeclarationList, SyntaxKind, ExpressionStatement, ImportDeclaration } from 'ts-morph';
+import { Project, SourceFile, VariableDeclarationKind, ExportAssignment, FunctionDeclaration, VariableDeclaration, VariableStatement, VariableDeclarationList, SyntaxKind, ExpressionStatement, ImportDeclaration, ReturnStatement } from 'ts-morph';
 import { getDefaultComponent, getImport, parseTag } from './parser';
 import { variableDeclaration } from '@babel/types';
 import { statements } from '@babel/template';
@@ -30,12 +30,6 @@ class statmentsModel{
 
 class callParamsModel{
   value : any
-}
-
-class callFunc{
-  name : String
-  params: Array<callParamsModel>
-  index: any
 }
 
 class statmentModel{
@@ -72,16 +66,16 @@ function mFunction(state: Array<any>, i: number):any{
   
   let statmen : Array<statmentModel>=[]
   j=0
-  console.log("LENGTH : "+(state[i] as FunctionDeclaration).getStatements().length)
   while(j<(state[i] as FunctionDeclaration).getStatements().length){
-    console.log("INDEX : "+j)
-    console.log("STATE : "+(state[i] as FunctionDeclaration).getStatements()[j].getText())
+    console.log("   "+(state[i] as FunctionDeclaration).getStatements()[j].getKindName()+" || "+j)
     if((state[i] as FunctionDeclaration).getStatements()[j].getKindName()=="VariableStatement"){
       statmen.push(mVar((state[i] as FunctionDeclaration).getStatements(),j))
     } else if((state[i] as FunctionDeclaration).getStatements()[j].getKindName()=="ExpressionStatement"){
       statmen.push(mExpression((state[i] as FunctionDeclaration).getStatements(),j))
     } else if((state[i] as FunctionDeclaration).getStatements()[j].getKindName()=="FunctionDeclaration"){
       statmen.push(mFunction((state[i] as FunctionDeclaration).getStatements(),j))
+    }else if((state[i] as FunctionDeclaration).getStatements()[j].getKindName()=="ReturnStatement"){
+      statmen.push(mReturn((state[i] as FunctionDeclaration).getStatements(),j))
     }
     j++
   }
@@ -137,10 +131,25 @@ function mExpression(state: any, i :number): any{
         "index":(state[i]).getChildIndex(),
         "kind": state[i].getKindName(),
         "name": identifier.getText(),
-        "value" : (state[i]).getChildIndex()
+        "value" : paramss
       }
       return statements
   }
+  
+}
+
+function mReturn(state: Array<any>, i: number):any{
+  for (const identifier of state[i].getDescendantsOfKind(SyntaxKind.Identifier)) {
+    let statements : statmentModel=
+    {
+      "index":(state[i]).getChildIndex(),
+      "kind": state[i].getKindName(),
+      "name": "",
+      "value" : identifier.getText()
+    }
+    return statements  
+  }
+  
   
 }
 function mImport(state: Array<any>, i: number):any{
@@ -169,6 +178,10 @@ function mImport(state: Array<any>, i: number):any{
 }
 function mDefault(sf:any):any{
   const expt = sf.getFirstChildByKind(SyntaxKind.ExportAssignment);
+  const arrow = expt.getFirstChildByKind(SyntaxKind.ArrowFunction);
+  console.log("arrow : "+arrow.getKindName())
+  arrow.addStatements("aaa")
+  
   if (expt) {
     let array: any = expt
       .getFirstChildByKindOrThrow(SyntaxKind.ArrowFunction)
@@ -180,7 +193,7 @@ function mDefault(sf:any):any{
         SyntaxKind.ParenthesizedExpression
       );
     } catch (e) {}
-
+    
     const expr = array.getExpression();
     return {
       index: expt.getChildIndex(),
@@ -228,6 +241,9 @@ app.post('/source', (req: any, res: any) => {
     statmen.pop();
     console.log()
     ////////////////////////////////
+
+    
+    
     let i: number = 0;
     while (i < state.length) {
       statmen.push(state[i].getText())
@@ -244,6 +260,7 @@ app.post('/source', (req: any, res: any) => {
 
       i++;
     }
+    
     //////////////
     
     sf.saveSync();
@@ -590,32 +607,38 @@ app.post('/add-statement-default',(req:any,res:any)=>{
   const path = req.body.path.replace('./', absPath + '/');
   const sf = project.getSourceFile(path);
   if(sf){
-    //(sf.getDefaultExportSymbol().getDeclarations() as FunctionDeclaration).addStatements("hlooo")
-    console.log(sf.getDefaultExportSymbol().getMembers())
     
-    console.log(sf.getExportDeclarations()[1])
-    console.log(sf.getExportDeclarations()[2])
+    const expt = sf.getFirstChildByKind(SyntaxKind.ExportAssignment);
+    const arrow = expt.getFirstChildByKind(SyntaxKind.ArrowFunction);
+    console.log("arrow : "+arrow.getKindName())
+    arrow.addStatements(req.body.statement)
   }
   project.saveSync();
   res.send('ok');
 })
 
-// app.post('/insert-statement-default',(req:any,res:any)=>{
-//   const path = req.body.path.replace('./', absPath + '/');
-//   const sf = project.getSourceFile(path);
-//   if(sf){
-//     getDefaultComponent(sf).insertStatements(req.body.index, req.body.statement);
-//   }
-//   project.saveSync();
-//   res.send('ok');
-// })
+app.post('/insert-statement-default',(req:any,res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    const expt = sf.getFirstChildByKind(SyntaxKind.ExportAssignment);
+    const arrow = expt.getFirstChildByKind(SyntaxKind.ArrowFunction);
+    console.log("arrow : "+arrow.getKindName())
+    arrow.insertStatements(req.body.index, req.body.statement);
+  }
+  project.saveSync();
+  res.send('ok');
+})
 
-// app.post('/del-statement-default',(req:any, res:any)=>{
-//   const path = req.body.path.replace('./', absPath + '/');
-//   const sf = project.getSourceFile(path);
-//   if(sf){
-//     getDefaultComponent(sf).removeStatement(req.body.index)
-//   }
-//   project.saveSync();
-//   res.send('ok');
-// })
+app.post('/del-statement-default',(req:any, res:any)=>{
+  const path = req.body.path.replace('./', absPath + '/');
+  const sf = project.getSourceFile(path);
+  if(sf){
+    const expt = sf.getFirstChildByKind(SyntaxKind.ExportAssignment);
+    const arrow = expt.getFirstChildByKind(SyntaxKind.ArrowFunction);
+    console.log("arrow : "+arrow.getKindName())
+    arrow.removeStatement(req.body.index)
+  }
+  project.saveSync();
+  res.send('ok');
+})
