@@ -4,4 +4,5 @@ import { View } from "react-xp";
 
 export default () => {
   return (<View/>);
+    aaa
 };

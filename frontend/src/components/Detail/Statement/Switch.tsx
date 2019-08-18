@@ -118,8 +118,8 @@ export default observer(
                 onBlur={() => {
                   if (!!meta.tempEditName) {
                     set("name", meta.tempEditName);
-                    meta.editName = false;
                   }
+                  meta.editName = false;
                 }}
                 borderless
                 placeholder={declaration === "default" ? "" : "<Condition>"}

@@ -3,7 +3,6 @@ import React from "react";
 
 export default observer(({ value, setValue }: any) => {
   value === null && setValue(undefined);
-  console.log(value);
   return (
     <div
       style={{

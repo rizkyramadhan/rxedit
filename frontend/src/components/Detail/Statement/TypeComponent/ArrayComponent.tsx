@@ -9,13 +9,9 @@ export default observer(({ value, setValue, depth }: any) => {
     expanded: [] as number[]
   });
 
-  const setMetaValue = (newval: any) => {
-    meta.value = newval;
-  };
-
   useEffect(() => {
-    setMetaValue(value);
-  }, [value]);
+    meta.value = value;
+  }, [value, meta.value]);
 
   const valueKeys = Object.keys(meta.value);
   return (

@@ -13,12 +13,9 @@ export default observer(({ value, setValue, depth }: any) => {
     expanded: [] as number[]
   });
 
-  const setMetaValue = (newval: any) => {
-    meta.value = newval;
-  };
   useEffect(() => {
-    setMetaValue(value);
-  }, [value]);
+    meta.value = value;
+  }, [value, meta.value]);
 
   return (
     <div style={{ paddingBottom: 0 }}>
@@ -35,7 +32,7 @@ export default observer(({ value, setValue, depth }: any) => {
             color: "#333"
           }}
         >
-          &mdash; Argument is empty &mdash;
+          &mdash; Statement is empty &mdash;
         </div>
       )}
       {meta.value.map((item: any, idx: number) => {
@@ -65,6 +62,7 @@ export default observer(({ value, setValue, depth }: any) => {
                 borderRight: "1px solid #ccc",
                 display: "flex",
                 alignItems: "center",
+                color: depth < 3 ? '#fff': '#000',
                 background: `rgba(0,0,0,${0.3 - (depth / 6) * 0.2})`,
                 userSelect: "none",
                 justifyContent: "center"

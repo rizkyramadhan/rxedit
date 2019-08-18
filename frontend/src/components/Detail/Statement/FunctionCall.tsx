@@ -34,7 +34,7 @@ export default observer(
     value,
     type = "object",
     declaration = "const",
-    useDeclaration = true,
+    useDeclaration = false,
     set,
     unset,
     depth = 0,
@@ -57,41 +57,6 @@ export default observer(
           borderStyle: "solid"
         }}
       >
-        {useDeclaration && (
-          <div
-            style={{
-              position: "relative",
-              flex: " 0 0 22px",
-              backgroundColor: "#fafafa",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              borderRight: "1px solid #ccc"
-            }}
-          >
-            <Dropdown
-              onRenderOption={typeRenderOption as any}
-              onRenderCaretDown={() => <div />}
-              styles={typeDropdownStyles}
-              defaultSelectedKey={declaration}
-              options={
-                ["statement", "function"].indexOf(type) >= -1
-                  ? [
-                      ...optionsDeclaration,
-                      {
-                        key: "return",
-                        text: "return",
-                        data: { icon: "ReturnKey" }
-                      }
-                    ]
-                  : optionsDeclaration
-              }
-              onChange={(_e: any, val: any) => {
-                set("declaration", val.key);
-              }}
-            />
-          </div>
-        )}
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           {meta.editName ? (
             <div
@@ -120,8 +85,8 @@ export default observer(
                 onBlur={() => {
                   if (!!meta.tempEditName) {
                     set("name", meta.tempEditName);
-                    meta.editName = false;
                   }
+                  meta.editName = false;
                 }}
                 borderless
                 placeholder="<FunctionName>"
@@ -129,89 +94,89 @@ export default observer(
               />
             </div>
           ) : (
-            <div
-              style={{
-                padding: "0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                backgroundColor: "#fafafa"
-              }}
-            >
-              {type !== "statement" && (
-                <CommandBarButton
-                  text={meta.tempEditName || "<FunctionName>"}
-                  onClick={() => {
-                    if (isNameEditable) {
-                      meta.tempEditName = name;
-                      meta.editName = true;
-                    }
-                  }}
-                  styles={{
-                    root: {
-                      flex: 1,
-                      height: 27,
-                      background: "none"
-                    },
-                    label: {
-                      padding: 5,
-                      marginLeft: 0,
-                      fontSize: 13,
-                      textAlign: "left",
-                      textOverflow: "elipsis",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      fontStyle: "italic"
-                    }
-                  }}
-                />
-              )}
               <div
                 style={{
+                  padding: "0",
                   display: "flex",
-                  flexDirection: "row"
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  backgroundColor: "#fafafa"
                 }}
               >
-                <IconButton
-                  iconProps={{ iconName: "CircleAddition" }}
-                  title="Add Variable"
-                  ariaLabel="Add Variable"
-                  styles={{
-                    root: {
-                      height: 27
-                    }
+                {type !== "statement" && (
+                  <CommandBarButton
+                    text={meta.tempEditName || "<FunctionName>"}
+                    onClick={() => {
+                      if (isNameEditable) {
+                        meta.tempEditName = name;
+                        meta.editName = true;
+                      }
+                    }}
+                    styles={{
+                      root: {
+                        flex: 1,
+                        height: 27,
+                        background: "none"
+                      },
+                      label: {
+                        padding: 5,
+                        marginLeft: 0,
+                        fontSize: 13,
+                        textAlign: "left",
+                        textOverflow: "elipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        fontStyle: "italic"
+                      }
+                    }}
+                  />
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row"
                   }}
-                  menuProps={{
-                    items: statementType,
-                    onItemClick: (_e: any, val: any) => {
-                      set("value", [...value, addStatement(val)]);
-                    }
-                  }}
-                  menuIconProps={{
-                    style: {
-                      display: "none"
-                    }
-                  }}
-                />
-                <IconButton
-                  iconProps={{ iconName: "Delete" }}
-                  title="Delete Variable"
-                  ariaLabel="Delete Variable"
-                  styles={{
-                    root: {
-                      height: 27
-                    },
-                    icon: {
-                      color: "#d00000"
-                    }
-                  }}
-                  onClick={() => {
-                    unset();
-                  }}
-                />
+                >
+                  <IconButton
+                    iconProps={{ iconName: "CircleAddition" }}
+                    title="Add Variable"
+                    ariaLabel="Add Variable"
+                    styles={{
+                      root: {
+                        height: 27
+                      }
+                    }}
+                    menuProps={{
+                      items: statementType,
+                      onItemClick: (_e: any, val: any) => {
+                        set("value", [...value, addStatement(val)]);
+                      }
+                    }}
+                    menuIconProps={{
+                      style: {
+                        display: "none"
+                      }
+                    }}
+                  />
+                  <IconButton
+                    iconProps={{ iconName: "Delete" }}
+                    title="Delete Variable"
+                    ariaLabel="Delete Variable"
+                    styles={{
+                      root: {
+                        height: 27
+                      },
+                      icon: {
+                        color: "#d00000"
+                      }
+                    }}
+                    onClick={() => {
+                      unset();
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
           <div
             style={{
               borderTop: "1px solid #ecebeb",
