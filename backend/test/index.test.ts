@@ -110,6 +110,8 @@ test('Edit Import', async() => {
   expect(res.data).toEqual('ok');
 })
 
+
+
 test('Delete Import', async() => {
   const res = await axios.post(`${url}/del-import`,{
       path: newfile,
@@ -201,14 +203,14 @@ test('Call function', async() => {
   expect(res.data).toEqual('ok');
 })
 
-// test('Del call function', async() => {
-//   const res = await axios.post(`${url}/del-call-function`,{
-//       path: newfile,
-//       function: "newerFun",
-//       params: "'haloo'"
-//   })
-//   expect(res.data).toEqual('ok');
-// })
+test('Del call function', async() => {
+  const res = await axios.post(`${url}/del-call-function`,{
+      path: newfile,
+      function: "newerFun",
+      params: "'haloo'"
+  })
+  expect(res.data).toEqual('ok');
+})
 
 
 
@@ -230,13 +232,13 @@ test('Insert Statement', async() => {
   expect(res.data).toEqual('ok');
 })
 
-// test('Delete Statement Function', async() => {
-//   const res = await axios.post(`${url}/del-statement`,{
-//       path: newfile,
-//       index:4
-//   })
-//   expect(res.data).toEqual('ok');
-// })
+test('Delete Statement Function', async() => {
+  const res = await axios.post(`${url}/del-statement`,{
+      path: newfile,
+      index:4
+  })
+  expect(res.data).toEqual('ok');
+})
 
 //STATEMENT IN FUNCTION
 test('Add Statement Function', async() => {
@@ -268,7 +270,7 @@ test('Delete Statement Function', async() => {
 })
 
 
-// //STATEMENT IN DEFAULT (BELUM JADI)
+// //STATEMENT IN DEFAULT
 test('Add Statement Default', async() => {
   const res = await axios.post(`${url}/add-statement-default`,{
       path: newfile,
@@ -294,22 +296,40 @@ test('Delete Statement Default', async() => {
   expect(res.data).toEqual('ok');
 })
 
+//GET MODULE & EXPORT
+test('Get Module', async() => {
+  const res = await axios.post(`${url}/get-module`,{
+    path: newfile,
+    search: "Comp7"
+  })
+  expect(typeof res.data).toBe('object');
+})
+
+test('Get Export Module', async() => {
+  const res = await axios.post(`${url}/get-export-from-module`,{
+    path: newfile,
+    search: ""
+  })
+  expect(typeof res.data).toBe('object');
+})
+//////////
+
 //DELETE
 
-// test('Delete Function', async() => {
-//   const res = await axios.post(`${url}/del-function`,{
-//       path: newfile,
-//       name: "newerFun"
-//   })
-//   expect(res.data).toEqual('ok');
-// })
+test('Delete Function', async() => {
+  const res = await axios.post(`${url}/del-function`,{
+      path: newfile,
+      name: "newerFun"
+  })
+  expect(res.data).toEqual('ok');
+})
 
-// test('Delete newfile', async() => {
-//   const res = await axios.post(`${url}/del`,{
-//       path: newfile
-//   })
-//   expect(res.data).toEqual('ok');
-// })
+test('Delete newfile', async() => {
+  const res = await axios.post(`${url}/del`,{
+      path: newfile
+  })
+  expect(res.data).toEqual('ok');
+})
 
 
 
